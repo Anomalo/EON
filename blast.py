@@ -1,0 +1,41 @@
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
+
+seqSample ='GCAGGCATGTAGGAACAGTAGTAGTCTCTCTCAACCCCCACCCTGATACAGTACCTCCAGATTTGCCCAAGCTGCAAGATGTGGATGAGTGACTGCAGGAGCCAGATGCAAAAGGAGCAGGACGCAGACCTGTGTTTGCCGCTGGTCCGGGTGGCCCCGTTGCTGTTGCTGCCGCTGTTGGTGGCGGCGATGTTGCTCTTGCTGGCGTTGGATGCTTGCCTCTGCGGCGTGGAAGGACGAACCTCGCCTTCCCCGGCTGCAGACCCACTGCTGACCACCGTCTTGCAATCTGCTCCAGGCTGCTGGCAGCTGGAGGTGGTGGTCGTGGAGCTGTCCTCGGTGCTGAAATCATGCACAAACCAGCGGAAGCTGAACACTTGCACAGAAAGGGAGCCCAGCACCACGAAGAAGAGGGTGAGCCCAAACCACCAGCGCTGGCCACGCAGGTAGTAGTCCACCGCGAGCCAGATGTCCGTTCCCACATCCGCGAAGTACACGGCCACGGCGGCCAGGATCCAGAGGCAGTCCCACAGCGAGTAACGCCGCTGCTCCCTGCCCAGGCGCAGGCACAGCGCCGCAGAGCCCGCCCCGCTGCCCCGGCCGCCGCCGCCCGAGCCGCCCGAGCCCGCCGAGCCGCCGCTCCCCGCGCAGCAGCAGCAGCAGCGCGAGCAGCCACCGCCGTCCGGGCAGCAGCCGCCTCCGGCCGCCTCCGTGTCCTCGGCTCCGGACCCCGACGGCAAGCCTGGAGCCAGTCCTTGCACAGAGCCCGAATTGTCCGAGTTCTGCAGCGGGGTGAACGCCACGTCGCTGCTCTTCTTCATCTTCAGCCTCCCGTCTGACTTAGCGGCCATGATGCCTCGGCAGCGGAGGAGAGCACTCCTTTATCTGACACCTGTCCCTGCTGTCTCCTCCTCCCGCCACCTCCTCGCCTCGCCCTGGCTTCCTT'
+
+
+def blast(sequence, program = 'blastn', hitlist_size = 500, filter = ''):	
+	'''
+	returns blast results of a sequence
+	sequence -- nucleotide sequence to blast
+	ptogram -- ncbi blast program blastp, blastn, blastx,tblastn, and tblastx 
+	'''
+	result_handle = NCBIWWW.qblast("blastn", "nt", sequence)
+	blast_record = NCBIXML.read(result_handle)
+	results = []
+	for alignment in blast_record.alignments:
+		if filter in alignment.title:
+			items = alignment.title.split('|')
+			seqID = items[3]
+			gi = items[1]
+			title = items[4]
+			taxon = ' '.join(title.replace('PREDICTED:','').split()[:2])
+			symbol = None
+			if '(' in title:
+				symbol = title.split('(')[-1].split(')')[0]
+			result = {'seqID' : seqID,
+				  'gi' : gi,
+				  'title' : title,
+				  'symbol' : symbol,
+				  'taxon' : taxon}
+			results.append(result)
+	return results	
+if __name__ == '__main__':
+        b = blast(seqSample)
+	print b
+	print len(b)
+	while True:
+		try:exec(raw_input('>>>'))
+		except:pass
+
+
