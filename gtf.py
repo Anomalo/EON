@@ -112,7 +112,7 @@ class gtf:
                 transcripts.append(i['transcript_name'])
         return sorted(list(set(transcripts)))
         '''
-        return (self.names_transcripts[gene])
+        return (self.names_transcripts[gene.lower().title()])
 
     def getTranscriptCoords(self,transcript):
         '''
