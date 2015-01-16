@@ -78,9 +78,10 @@ def genGIB(gob, word_size=11):
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
-	gibD = {}
+	metaGIB=[]
 	n=0.0
 	for l in range(num_lines):
+		if n%1000 == 0: metaGIB.append({})
 		os.system('clear')
 		percentage = str(round(100*n/num_lines,2))+'%'
 		params = {'step':'GIB','percentage': percentage,'left':num_lines - n}
@@ -98,14 +99,18 @@ def genGIB(gob, word_size=11):
 			words = len(seq)-word_size
 			for i in range(words):
 				word = seq[i:i+word_size]
-				if not word in gibD: gibD.update({word:[]})
-				gibD[word].append({'go':go,
+				if not word in metaGIB[-1]: metaGIB[-1].update({word:[]})
+				metaGIB[-1][word].append({'go':go,
 						'goID':goid,
 						'url':url,
 						'line':l,
 						'seqNumber':seqIndex,
 						'location':i})
-		n+=1			
+		n+=1
+	print 'Merging GIBS into one GIB'
+	gibD={}
+	for d in metaGIB:
+		gibD = dict(gibD,**d)		
 	pickle.dump(gibD,open(gibfname,'wb'))
 	os.system('rm *.remainder')
 if __name__ == '__main__':
