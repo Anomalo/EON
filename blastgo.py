@@ -1,4 +1,4 @@
-
+from pprint import pprint
 import os
 import subprocess
 import cPickle as pickle
@@ -73,12 +73,13 @@ def genGOB(gmt):
 def genGIB(gob, word_size=11):
 	'''
 	makes a GIB (gob index), from a gob file.
-	
 	'''
+
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
 	gibD = {}
+	n=0.0
 	for l in range(num_lines):
 		os.system('clear')
 		percentage = str(round(100*n/num_lines,2))+'%'
@@ -90,6 +91,7 @@ def genGIB(gob, word_size=11):
                 os.system('touch '+remainder+'.remainder')
 		line = gob.readline()
 		go, url, seqs = line.split('\t')
+		goid = url.split(':')[-1]
 		seqs = seqs.split(';')
 		for seqIndex in range(len(seqs)):
 			seq = seqs[seqIndex]
@@ -98,13 +100,15 @@ def genGIB(gob, word_size=11):
 				word = seq[i:i+word_size]
 				if not word in gibD: gibD.update({word:[]})
 				gibD[word].append({'go':go,
+						'goID':goid,
 						'url':url,
 						'line':l,
-						'seq':seqIndex,
-						'coords':i})			
+						'seqNumber':seqIndex,
+						'location':i})
+		n+=1			
 	pickle.dump(gibD,open(gibfname,'wb'))
 	os.system('rm *.remainder')
 if __name__ == '__main__':
-	genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
+	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
 	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob') 
 
