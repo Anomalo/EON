@@ -1,8 +1,16 @@
 from pprint import pprint
+modules  = ['os','subprocess','cPickle as pickle','glob','fa','gtf']
+for module in modules:
+	print 'importing',module
+	exec('import '+module)
+'''
 import os
 import subprocess
 import cPickle as pickle
-
+import glob
+import fa
+import gtf
+'''
 def file_len(fname):
 	'''
 	just returns the number of lines of a file.
@@ -13,6 +21,7 @@ def file_len(fname):
 	if p.returncode != 0:
 		raise IOError(err)
 	return int(result.strip().split()[0])
+
 def genGOB(gmt):
 	'''
 	given a gmtfile, it creates a .gob (GOBlast) file
@@ -55,7 +64,7 @@ def genGOB(gmt):
 					for exon in exonNames:
 						#print exon
 						c,s,e,strand = gtf.getTranscriptCoords(exon)
-						exons.append( fa.seq_coords(c,s,e,strand))
+						exons.append( exon+':'+fa.seq_coords(c,s,e,strand))
 					genesSeen.update({gene:exons})
 				except:
 					genesSeen.update({gene:[]})
@@ -95,8 +104,9 @@ def genGIB(gob, word_size=11):
 		goid = url.split(':')[-1]
 		seqs = seqs.split(';')
 		for seqIndex in range(len(seqs)):
-			seq = seqs[seqIndex]
+			exon, seq = seqs[seqIndex].split(':')
 			words = len(seq)-word_size
+			exonSize = len(seq)
 			for i in range(words):
 				word = seq[i:i+word_size]
 				if not word in metaGIB[-1]: metaGIB[-1].update({word:[]})
@@ -105,7 +115,9 @@ def genGIB(gob, word_size=11):
 						'url':url,
 						'line':l,
 						'seqNumber':seqIndex,
-						'location':i})
+						'location':i,
+						'exon':exon,
+						'exonSize':exonSize})
 		n+=1
 	print 'Merging GIBS into one GIB'
 	gibD={}
@@ -113,7 +125,60 @@ def genGIB(gob, word_size=11):
 		gibD = dict(gibD,**d)		
 	pickle.dump(gibD,open(gibfname,'wb'))
 	os.system('rm *.remainder')
-if __name__ == '__main__':
-	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
-	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob') 
 
+def _sepWords(seq, WordSize):
+	wordsNumber = len(seq)-WordSize
+	words = []
+	for i in range(wordsNumber):
+		word = seq[i:i+WordSize]
+		words.append(word)
+	return words
+
+class glast:
+	def __init__(self,GIB=None):
+		if GIB == None:
+			GIB = glob.glob('annotations/*.gib')[0]
+		self.index = pickle.load(open(GIB))
+		WS = GIB.split('.')[0].split('_')[-1]
+		self.WS = int(WS)
+
+	def glastSeq(self, seq, b = False):
+		'''
+		given a sequence it returns glasting results
+		'''
+		index = self.index
+		words = _sepWords(seq,self.WS)
+		matches = []
+		n = 0
+		for word in words:
+			if word in index:
+				
+				matches.append()						
+				
+			
+	def glastExon(self, exon , b=False):
+		'''
+		given a transcript name it returns the glasting results
+		'''
+		print 'glasting',exon
+		chromosome,start,end,strand = gtf.getTranscriptCoords(exon)
+		seq = fa.seq_coords(chromosome,start,end,strand)
+		return self.glastSeq(seq, b = b)
+		
+	def glastGene(self, gene):
+		'''
+		given a gene short name, it returns the glasting
+		results of all transcripts in a dictionary format
+		'''
+		exons = gtf.getExons(gene)
+		results = dict.fromkeys(exons)
+		for exon in exons:
+			results[exons] = self.glastExon(exon)
+		return results
+
+if __name__ == '__main__':
+	genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
+	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob') 
+	#g =  glast()
+	#print g.glastExon('Malat1-001',b=True)#[:3]
+#
