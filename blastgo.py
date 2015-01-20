@@ -1,5 +1,5 @@
 from pprint import pprint
-modules  = ['os','subprocess','cPickle as pickle','glob','fa','gtf']
+modules  = ['os','subprocess','cPickle as pickle','glob','fa']#,'gtf']
 for module in modules:
 	print 'importing',module
 	exec('import '+module)
@@ -22,23 +22,24 @@ def file_len(fname):
 		raise IOError(err)
 	return int(result.strip().split()[0])
 
-def genGOB(gmt):
+def genGOB(gmt=None):
 	'''
 	given a gmtfile, it creates a .gob (GOBlast) file
 	a row of BGO looks like:
 	[go term]	[all exons of all genes with that go concated by ';']
 	'''
-	print 'importing gtf'
-	import gtf
-	print 'importing fa'
-	import fa
-
+	if gmt == None:
+		gmt = glob.glob('annotations/*.gmt')[0]
+		if gmt == '':
+			print 'NO gmt present'
+			print 'download dataset from http://www.go2msig.org/cgi-bin/prebuilt.cgi'
+			quit()
 	f = open(gmt)
 	num_lines = file_len(gmt)
 	newFile = gmt[:-3]+'gob'
 	open(newFile, 'w').close()
 	newFile = open(newFile,'a')
-	print 1
+	#print 1
 	genesSeen={}
 	n=0.0
 	for i in range(num_lines):
@@ -48,7 +49,7 @@ def genGOB(gmt):
 		params = {'step':'GOB','percentage': percentage,'left':num_lines - n}
 		remainder ='%(step)s_%(percentage)s_%(left)s_left' 
 		remainder = remainder % params
-		print remainder
+		#print remainder
 		os.system('rm *.remainder')
 		os.system('touch '+remainder+'.remainder')
 		line = f.readline().split()
@@ -68,8 +69,8 @@ def genGOB(gmt):
 					genesSeen.update({gene:exons})
 				except:
 					genesSeen.update({gene:[]})
-					print 'fail','\t',gene
-			print '\t',gene
+					#print 'fail','\t',gene
+			#print '\t',gene
 			exons = genesSeen[gene]
 		exons = ';'.join(exons)
 		newLine = GO + '\t' + url + '\t' + exons + '\n'
@@ -79,11 +80,19 @@ def genGOB(gmt):
 	os.system('rm *.remainder')
 	os.system('touch DONE.remainder')
 
-def genGIB(gob, word_size=11):
+def genGIB(gob=None, word_size=11, b=False):
 	'''
 	makes a GIB (gob index), from a gob file.
 	'''
-
+	if gob == None:
+		gob = glob.glob('annotations/*.gob')[0]
+		if gob == '':
+			print 'NO GOB present, make one?'
+			ans = raw_input('[yes/no]')
+			if ans =='yes':
+				genGOB(gmt = None)
+				gob = glob.glob('annotations/*.gob')[0]
+			else: quit()	
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
@@ -104,21 +113,25 @@ def genGIB(gob, word_size=11):
 		goid = url.split(':')[-1]
 		seqs = seqs.split(';')
 		for seqIndex in range(len(seqs)):
-			exon, seq = seqs[seqIndex].split(':')
-			words = len(seq)-word_size
-			exonSize = len(seq)
-			for i in range(words):
-				word = seq[i:i+word_size]
-				if not word in metaGIB[-1]: metaGIB[-1].update({word:[]})
-				metaGIB[-1][word].append({'go':go,
-						'goID':goid,
-						'url':url,
-						'line':l,
-						'seqNumber':seqIndex,
-						'location':i,
-						'exon':exon,
-						'exonSize':exonSize})
+			if not  seqs[seqIndex].replace('\n',"") == '':
+				exon, seq = seqs[seqIndex].replace('\n',"").split(':')
+				words = len(seq)-word_size
+				exonSize = len(seq)
+				for i in range(words):
+					word = seq[i:i+word_size]
+					if not word in metaGIB[-1]: metaGIB[-1].update({word:[]})
+					metaGIB[-1][word].append({'go':go,
+							'goID':goid,
+							'url':url,
+							'line':l,
+							'seqNumber':seqIndex,
+							'location':i,
+							'exon':exon,
+							'exonSize':exonSize})
 		n+=1
+		if b:
+			print n
+			break
 	print 'Merging GIBS into one GIB'
 	gibD={}
 	for d in metaGIB:
@@ -138,6 +151,14 @@ class glast:
 	def __init__(self,GIB=None):
 		if GIB == None:
 			GIB = glob.glob('annotations/*.gib')[0]
+		if GIB == '':
+			print 'NO GIB present, make one?'
+			ans = raw_input('[yes/no]')
+			if ans =='yes':
+				WS = int(raw_input('what word size? '))
+				genGIB(gob=none,word_size=WS,b=False)
+				GIB = glob.glob('annotations/*.gib')[0]
+			else: quit()
 		self.index = pickle.load(open(GIB))
 		WS = GIB.split('.')[0].split('_')[-1]
 		self.WS = int(WS)
@@ -177,8 +198,8 @@ class glast:
 		return results
 
 if __name__ == '__main__':
-	genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
-	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob') 
+	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
+	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False) 
 	#g =  glast()
 	#print g.glastExon('Malat1-001',b=True)#[:3]
 #
