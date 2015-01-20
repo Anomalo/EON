@@ -11,6 +11,7 @@ import glob
 import fa
 import gtf
 '''
+
 def file_len(fname):
 	'''
 	just returns the number of lines of a file.
@@ -82,7 +83,8 @@ def genGOB(gmt=None):
 
 def genGIB(gob=None, word_size=11, b=False):
 	'''
-	makes a GIB (gob index), from a gob file.
+	makes a GIB (gob index), from a gob file. if no gob is stated it will look for one in 
+	annotations/ folder. if no gob present there it will promt to create one.
 	'''
 	if gob == None:
 		gob = glob.glob('annotations/*.gob')[0]
@@ -149,6 +151,10 @@ def _sepWords(seq, WordSize):
 
 class glast:
 	def __init__(self,GIB=None):
+		'''
+		if no gib specified will chose one from annotations/ folder.
+		if no gib is present in that directory it will prompt to create one.	
+		'''
 		if GIB == None:
 			GIB = glob.glob('annotations/*.gib')[0]
 		if GIB == '':
