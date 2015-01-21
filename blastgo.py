@@ -1,27 +1,29 @@
 from pprint import pprint
-modules  = ['os','subprocess','cPickle as pickle','glob','fa']#,'gtf']
+from progressbar import *
+modules  = [	'os',
+		'subprocess',
+		'sys',
+		'cPickle as pickle',
+		'glob',
+		'fa',
+		'gtf']
 for module in modules:
 	print 'importing',module
 	exec('import '+module)
-'''
-import os
-import subprocess
-import cPickle as pickle
-import glob
-import fa
-import gtf
-'''
+
 
 def file_len(fname):
 	'''
 	just returns the number of lines of a file.
 	'''
-	p = subprocess.Popen(['wc', '-l', fname], stdout=subprocess.PIPE, 
-						  stderr=subprocess.PIPE)
-	result, err = p.communicate()
-	if p.returncode != 0:
-		raise IOError(err)
-	return int(result.strip().split()[0])
+	try:
+		x = os.popen('wc -l '+fname).read().split()[0]
+		return int(x)
+	except:
+		f = open(fname)
+		c = f.read().count('\n')
+		return c	
+
 
 def genGOB(gmt=None):
 	'''
@@ -98,16 +100,20 @@ def genGIB(gob=None, word_size=11, b=False):
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
-	metaGIB=[]
+	GIB = {}
+	#metaGIB=[]
 	n=0.0
+
+	widgets = ['Generating GIB: ', SimpleProgress(),' ', Percentage(), ' ', Bar(marker=RotatingMarker()),
+        	   ' ', AdaptiveETA()]
+	pbar = ProgressBar(widgets=widgets, maxval=num_lines).start()
+	#b = bar(num_lines)
 	for l in range(num_lines):
-		if n%1000 == 0: metaGIB.append({})
-		os.system('clear')
+		#if n%1000 == 0: metaGIB.append({})
 		percentage = str(round(100*n/num_lines,2))+'%'
-		params = {'step':'GIB','percentage': percentage,'left':num_lines - n}
+		params = {'step':'GIB','percentage': percentage,'left':int(num_lines - n)}
 		remainder ='%(step)s_%(percentage)s_%(left)s_left' 
 		remainder = remainder % params
-		print remainder
                 os.system('rm *.remainder')
                 os.system('touch '+remainder+'.remainder')
 		line = gob.readline()
@@ -121,24 +127,25 @@ def genGIB(gob=None, word_size=11, b=False):
 				exonSize = len(seq)
 				for i in range(words):
 					word = seq[i:i+word_size]
-					if not word in metaGIB[-1]: metaGIB[-1].update({word:[]})
-					metaGIB[-1][word].append({'go':go,
+					if not word in GIB: GIB.update({word:[]})
+					if not word in GIB:print word in GIB
+					GIB[word].append({
+							'go':go,
 							'goID':goid,
 							'url':url,
 							'line':l,
 							'seqNumber':seqIndex,
 							'location':i,
 							'exon':exon,
-							'exonSize':exonSize})
+							'exonSize':exonSize
+							})
 		n+=1
+		pbar.update(n)
 		if b:
 			print n
 			break
-	print 'Merging GIBS into one GIB'
-	gibD={}
-	for d in metaGIB:
-		gibD = dict(gibD,**d)		
-	pickle.dump(gibD,open(gibfname,'wb'))
+	pbar.finish()
+	pickle.dump(GIB,open(gibfname,'wb'))
 	os.system('rm *.remainder')
 
 def _sepWords(seq, WordSize):
@@ -177,11 +184,25 @@ class glast:
 		words = _sepWords(seq,self.WS)
 		matches = []
 		n = 0
+		possibilities = {}
 		for word in words:
 			if word in index:
-				
-				matches.append()						
-				
+				wordMatches = index[word]
+				for wordMatch in wordMatches:
+					exon = wordMatch['exon']
+					if not exon in possibilities:
+						exonSize = wordMatch['exonSize']
+						url = wordMatch['url']
+						go = wordMatch['go']
+						goID = wordMatch['goID']
+						mockStrand = [None]*(exonSize-self.WS)
+						data = {'url':url,'go':go,'goID':goID}
+						possibilities.update({exon:{'strand':mockStrand, 'data':wordMatch}})
+					location = wordMatch['location']
+					possibilities[exon]['strand'][location]=n
+					print possibilities
+			if b:break
+			n+=1
 			
 	def glastExon(self, exon , b=False):
 		'''
@@ -207,5 +228,7 @@ if __name__ == '__main__':
 	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
 	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False) 
 	#g =  glast()
+	#seq ='''ACCTCACTTGAGCCACGAGTGGGGTCAGGCATGTGGGTTTAAAGAGTTTTCCTTTGCAGAGCCTCATTTCATCCTTCATGGAGCTGCTCAGGACTTTGCATATAAGCGCTTGCCTCTGTCTTCTGTTCTGCTAGTGAGTGTGTGATGTGAGACCTTGCAGTGAGTTTGTTTTTCCTGGAATGTGGAGGGAGGGGGGGATGGGGCTTACTTGTTCTAGCTTTTTTTTTACAGACCACACAGAATGCAGGTGTCTTGACTTCAGGTCATGTCTGTTCTTTGGCAAGTAATATGTGCAGTACTGTTCCAATCTGCTGCTATTAGAATGCATTGTGACGCGACTGGAGTATGATTAAAGAAAGTTGTGTTTCCCCAAGTGTTTGGAGTAGTGGTTGTTGGAGGAAAAGCCATGAGTAACAGGCTGAGTGTTGAGGAAATGGCTCTCTGCAGCTTTAAGTAACCCGTGTTTGTGATTGGAGCCGAGTCCCTTTGCTGTGCTGCCTTAGGTAAATGTTTTTGTTCATTTCTGGTGAGGGGGGTTGGGAGCACTGAAGCCTTTAGTCTCTTCCAGATTCAACTTAAAATCTGACAAGAAATAAATCAGACAAGCAACATTCTTGAAGAAATTTTAACTGGCAAGTGGAAATGTTTTGAACAGTTCCGTGGTCTTTAGTGCATTATCTTTGTGTAGGTGTTCTCTCTCCCCTCCCTTGGTCTTAATTCTTACATGCAGGAACATTGACAACAGCAGACATCTATCTATTCAAGGGGCCAGAGAATCCAGACCCAGTAAGGAAAAATAGCCCATTTACTTTAAATCGATAAGTGAAGCAGACATGCCATTTTCAGTGTGGGGATTGGGAAGCCCTAGTTCTTTCAGATGTACTTCAGACTGTAGAAGGAGCTTCCAGTTGAATTGAAATTCACCAGTGGACAAAATGAGGACAACAGGTGAACGAGCCTTTTCTTGTTTAAGATTAGCTACTGGTAATCTAGTGTTGAATCCTCTCCAGCTTCATGCTGGAGCAGCTAGCATGTGATGTAATGTTGGCCTTGGGGTGGAGGGGTGAGGTGGGCGCTAAGCCTTTTTTTAAGATTTTTCAGGTACCCCTCACTAAAGGCACTGAAGGCTTAATGTAGGACAGCGGAGCCTTCCTGTGTGGCAAGAATCAAGCAAGCAGTATTGTATCGAGACCAAAGTGGTATCATGGTCGGTTTTGATTAGCAGTGGGGACTACCCTACCGTAACACCTTGTTGGAATTGAAGCATCCAAAGAAAATACTTGAGAGGCCCTGGGCTTGTTTTAACATCTGGAAAAAAGGCTGTTTTTATAGCAGCGGTTACCAGCCCAAACCTCAAGTTGTGCTTGCAGGGGAGGGAAAAGGGGGAAAGCGGGCAACCAGTTTCCCCAGCTTTTCCAGAATCCTGTTACAAGGTCTCCCCACAAGTGATTTCTCTGCCACATCGCCACCATGGGCCTTTGGCCTAATCACAGACCCTTCACCCCTCACCTTGATGCAGCCAGTAGCTGGATCCTTGAGGTCACGTTGCATATCGGTTTCAAGGTAACCATGGTGCCAAGGTCCTGTGGGTTGCACCAGAAAAGGCCATCAATTTTCCCCTTGCCTGTAATTTAACATTAAAACCATAGCTAAGATGTTTTATACATAGCACCTATGCAGAGTAAACAAACCAGTATGGGTATAGTATGTTTGATACCAGTGCTGGGTGGGAATGTAGGAAGTCGGATGAAAAGCAAGCCTTTGTAGGAAGTTGTTGGGGTGGGATTGCAAAAATTCTCTGCTAAGACTTTTTCAGGTGGACATAACAGACTTGGCCAAGCTAGCATCTTAGTGGAAGCAGATTCGTCAGTAGGGTTGTAAAGGTTTTTCTTTTCCTGAGAAAACAACCTTTTGTTTTCTCAGGTTTTGCTTTTTGGCCTTTCCCTAG'''
+	#print g.glastSeq(seq,b=False)
 	#print g.glastExon('Malat1-001',b=True)#[:3]
 #
