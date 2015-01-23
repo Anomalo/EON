@@ -1,7 +1,7 @@
 from pprint import pprint
 from progressbar import *
 modules  = [	'os',
-		'subprocess',
+		'eta',
 		'sys',
 		'cPickle as pickle',
 		'glob',
@@ -44,17 +44,10 @@ def genGOB(gmt=None):
 	newFile = open(newFile,'a')
 	#print 1
 	genesSeen={}
+	ETA = eta.ETA(num_lines)
 	n=0.0
 	for i in range(num_lines):
-
-		os.system('clear')
-		percentage = str(round(100*n/num_lines,2))+'%'
-		params = {'step':'GOB','percentage': percentage,'left':num_lines - n}
-		remainder ='%(step)s_%(percentage)s_%(left)s_left' 
-		remainder = remainder % params
-		#print remainder
-		os.system('rm *.remainder')
-		os.system('touch '+remainder+'.remainder')
+		ETA.touch_status(prefix='GOB')
 		line = f.readline().split()
 		GO = line.pop(0)
 		url = line.pop(0)
@@ -97,25 +90,19 @@ def genGIB(gob=None, word_size=11, b=False):
 				genGOB(gmt = None)
 				gob = glob.glob('annotations/*.gob')[0]
 			else: quit()	
+	print 'Gibbing'
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
 	GIB = {}
 	#metaGIB=[]
 	n=0.0
-
-	widgets = ['Generating GIB: ', SimpleProgress(),' ', Percentage(), ' ', Bar(marker=RotatingMarker()),
-        	   ' ', AdaptiveETA()]
-	pbar = ProgressBar(widgets=widgets, maxval=num_lines).start()
-	#b = bar(num_lines)
+	ETA = eta.ETA(num_lines)
+	
 	for l in range(num_lines):
 		#if n%1000 == 0: metaGIB.append({})
-		percentage = str(round(100*n/num_lines,2))+'%'
-		params = {'step':'GIB','percentage': percentage,'left':int(num_lines - n)}
-		remainder ='%(step)s_%(percentage)s_%(left)s_left' 
-		remainder = remainder % params
-                os.system('rm *.remainder')
-                os.system('touch '+remainder+'.remainder')
+		try: ETA.touch_status(prefix='GIB')
+		except: pass
 		line = gob.readline()
 		go, url, seqs = line.split('\t')
 		goid = url.split(':')[-1]
@@ -140,13 +127,10 @@ def genGIB(gob=None, word_size=11, b=False):
 							'exonSize':exonSize
 							})
 		n+=1
-		pbar.update(n)
 		if b:
 			print n
 			break
-	pbar.finish()
 	pickle.dump(GIB,open(gibfname,'wb'))
-	os.system('rm *.remainder')
 
 def _sepWords(seq, WordSize):
 	wordsNumber = len(seq)-WordSize
