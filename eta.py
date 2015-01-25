@@ -274,6 +274,8 @@ class _ETA(object):
 
     def touch_status(self,prefix = 'status',suffix='.eta'):
         line = self.return_status()
+	if line == None:
+		line = '????'
         line = prefix+'.'+line+ suffix
         line = line.replace('>','~')
         line = line.replace('|','-')
