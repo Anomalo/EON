@@ -1,14 +1,14 @@
 from pprint import pprint
-from progressbar import *
+from threading import Thread
 modules  = [	'os',
 		'eta',
 		'sys',
 		'cPickle as pickle',
 		'glob',
 		'fa',
-		'gtf']
+		]
 for module in modules:
-	print 'importing',module
+	#print 'importing',module
 	exec('import '+module)
 
 
@@ -31,6 +31,7 @@ def genGOB(gmt=None):
 	a row of BGO looks like:
 	[go term]	[all exons of all genes with that go concated by ';']
 	'''
+	import gtf
 	if gmt == None:
 		gmt = glob.glob('annotations/*.gmt')[0]
 		if gmt == '':
@@ -76,7 +77,7 @@ def genGOB(gmt=None):
 	os.system('rm *.remainder')
 	os.system('touch DONE.remainder')
 
-def genGIB(gob=None, word_size=11, b=False):
+def genGIB(gob=None, word_size=11, b=False, checkpoint=1000,load=True):
 	'''
 	makes a GIB (gob index), from a gob file. if no gob is stated it will look for one in 
 	annotations/ folder. if no gob present there it will promt to create one.
@@ -94,13 +95,25 @@ def genGIB(gob=None, word_size=11, b=False):
 	num_lines = file_len(gob)
 	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
 	gob = open(gob)
-	GIB = {}
-	#metaGIB=[]
+	#GIB = {}
+
+	if load: mode = 'c'
+	else:mode  = 'n'
+	#GIB = shelve.open(gibfname,mode,writeback=True)
+	if load:
+		try:
+			GIB = pickle.load(open(gibfname,'rb'))
+		except:
+			load = False
+	if not load: GIB={'position':1,'exon_sizes':{}}
+	position=GIB['position']-1
+	position = 0
 	n=0.0
 	ETA = eta.ETA(num_lines)
-	
-	for l in range(num_lines):
-		#if n%1000 == 0: metaGIB.append({})
+	def _save(target,content):
+		pickle.dump(content,open(target,'wb'))
+		#print 'saved'
+	for l in range(position,num_lines):
 		try: ETA.touch_status(prefix='GIB')
 		except: pass
 		line = gob.readline()
@@ -110,28 +123,50 @@ def genGIB(gob=None, word_size=11, b=False):
 		for seqIndex in range(len(seqs)):
 			if not  seqs[seqIndex].replace('\n',"") == '':
 				exon, seq = seqs[seqIndex].replace('\n',"").split(':')
-				words = len(seq)-word_size
 				exonSize = len(seq)
+
+				if not exon in GIB['exon_sizes']:
+					exon_sizes = GIB['exon_sizes']
+					exon_sizes.update({exon:exonSize})
+					GIB['exon_sizes']=exon_sizes
+				words = len(seq)-word_size
 				for i in range(words):
 					word = seq[i:i+word_size]
 					if not word in GIB: GIB.update({word:[]})
 					if not word in GIB:print word in GIB
-					GIB[word].append({
-							'go':go,
-							'goID':goid,
-							'url':url,
-							'line':l,
-							'seqNumber':seqIndex,
+					oldList = GIB[word]
+					newEntry = {	'go':go,
+							#'goID':goid,
+							#'url':url,
+							#'line':l,
+							#'seqNumber':seqIndex,
 							'location':i,
 							'exon':exon,
-							'exonSize':exonSize
-							})
+							#'exonSize':exonSize
+							}
+					if not newEntry in oldList:
+						oldList.append(newEntry)
+						GIB[word] = oldList
 		n+=1
+		if l%checkpoint == 0: # saves the dictionary every checkpoint lines
+			GIB['position']=l
+			#print l
+			a=Thread(target=_save,args=(gibfname,GIB))
+			a.start()
+			a.join()
+				#pickle.dump(GIB,open(gibfname,'wb'))
+			#GIB.sync()
 		if b:
 			print n
 			break
-	pickle.dump(GIB,open(gibfname,'wb'))
+	#GIB.close()
+	a=Thread(target=_save,args=(gibfname,GIB))
+	a.start()
+	a.join()
 
+	#pickle.dump(GIB,open(gibfname,'wb'))
+
+	
 def _sepWords(seq, WordSize):
 	wordsNumber = len(seq)-WordSize
 	words = []
@@ -192,6 +227,7 @@ class glast:
 		'''
 		given a transcript name it returns the glasting results
 		'''
+		import gtf
 		print 'glasting',exon
 		chromosome,start,end,strand = gtf.getTranscriptCoords(exon)
 		seq = fa.seq_coords(chromosome,start,end,strand)
@@ -210,7 +246,7 @@ class glast:
 
 if __name__ == '__main__':
 	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
-	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False) 
+	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False,checkpoint = 500) 
 	#g =  glast()
 	#seq ='''ACCTCACTTGAGCCACGAGTGGGGTCAGGCATGTGGGTTTAAAGAGTTTTCCTTTGCAGAGCCTCATTTCATCCTTCATGGAGCTGCTCAGGACTTTGCATATAAGCGCTTGCCTCTGTCTTCTGTTCTGCTAGTGAGTGTGTGATGTGAGACCTTGCAGTGAGTTTGTTTTTCCTGGAATGTGGAGGGAGGGGGGGATGGGGCTTACTTGTTCTAGCTTTTTTTTTACAGACCACACAGAATGCAGGTGTCTTGACTTCAGGTCATGTCTGTTCTTTGGCAAGTAATATGTGCAGTACTGTTCCAATCTGCTGCTATTAGAATGCATTGTGACGCGACTGGAGTATGATTAAAGAAAGTTGTGTTTCCCCAAGTGTTTGGAGTAGTGGTTGTTGGAGGAAAAGCCATGAGTAACAGGCTGAGTGTTGAGGAAATGGCTCTCTGCAGCTTTAAGTAACCCGTGTTTGTGATTGGAGCCGAGTCCCTTTGCTGTGCTGCCTTAGGTAAATGTTTTTGTTCATTTCTGGTGAGGGGGGTTGGGAGCACTGAAGCCTTTAGTCTCTTCCAGATTCAACTTAAAATCTGACAAGAAATAAATCAGACAAGCAACATTCTTGAAGAAATTTTAACTGGCAAGTGGAAATGTTTTGAACAGTTCCGTGGTCTTTAGTGCATTATCTTTGTGTAGGTGTTCTCTCTCCCCTCCCTTGGTCTTAATTCTTACATGCAGGAACATTGACAACAGCAGACATCTATCTATTCAAGGGGCCAGAGAATCCAGACCCAGTAAGGAAAAATAGCCCATTTACTTTAAATCGATAAGTGAAGCAGACATGCCATTTTCAGTGTGGGGATTGGGAAGCCCTAGTTCTTTCAGATGTACTTCAGACTGTAGAAGGAGCTTCCAGTTGAATTGAAATTCACCAGTGGACAAAATGAGGACAACAGGTGAACGAGCCTTTTCTTGTTTAAGATTAGCTACTGGTAATCTAGTGTTGAATCCTCTCCAGCTTCATGCTGGAGCAGCTAGCATGTGATGTAATGTTGGCCTTGGGGTGGAGGGGTGAGGTGGGCGCTAAGCCTTTTTTTAAGATTTTTCAGGTACCCCTCACTAAAGGCACTGAAGGCTTAATGTAGGACAGCGGAGCCTTCCTGTGTGGCAAGAATCAAGCAAGCAGTATTGTATCGAGACCAAAGTGGTATCATGGTCGGTTTTGATTAGCAGTGGGGACTACCCTACCGTAACACCTTGTTGGAATTGAAGCATCCAAAGAAAATACTTGAGAGGCCCTGGGCTTGTTTTAACATCTGGAAAAAAGGCTGTTTTTATAGCAGCGGTTACCAGCCCAAACCTCAAGTTGTGCTTGCAGGGGAGGGAAAAGGGGGAAAGCGGGCAACCAGTTTCCCCAGCTTTTCCAGAATCCTGTTACAAGGTCTCCCCACAAGTGATTTCTCTGCCACATCGCCACCATGGGCCTTTGGCCTAATCACAGACCCTTCACCCCTCACCTTGATGCAGCCAGTAGCTGGATCCTTGAGGTCACGTTGCATATCGGTTTCAAGGTAACCATGGTGCCAAGGTCCTGTGGGTTGCACCAGAAAAGGCCATCAATTTTCCCCTTGCCTGTAATTTAACATTAAAACCATAGCTAAGATGTTTTATACATAGCACCTATGCAGAGTAAACAAACCAGTATGGGTATAGTATGTTTGATACCAGTGCTGGGTGGGAATGTAGGAAGTCGGATGAAAAGCAAGCCTTTGTAGGAAGTTGTTGGGGTGGGATTGCAAAAATTCTCTGCTAAGACTTTTTCAGGTGGACATAACAGACTTGGCCAAGCTAGCATCTTAGTGGAAGCAGATTCGTCAGTAGGGTTGTAAAGGTTTTTCTTTTCCTGAGAAAACAACCTTTTGTTTTCTCAGGTTTTGCTTTTTGGCCTTTCCCTAG'''
 	#print g.glastSeq(seq,b=False)
