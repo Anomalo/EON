@@ -2,14 +2,36 @@ from pprint import pprint
 from threading import Thread
 modules  = [	'os',
 		'eta',
+		'operator',
 		'sys',
 		'cPickle as pickle',
 		'glob',
+		'pprint',
 		'fa',
+		'csv',
 		]
 for module in modules:
 	#print 'importing',module
 	exec('import '+module)
+
+def DtoTSV(d,tsvName,sep='\t',extras=None,head=None):
+	'''
+	it saves a dictionary into a csv file
+	'''
+	out = []
+	if head != None:
+		out =[sep.join(head)]
+	for x,y in d.iteritems():
+		out.append(sep.join([str(x),str(y)]))
+		if extras != None:
+			try:
+				out[-1]=out[-1]+sep+str(extras[x])
+			except: 
+				pass
+	tsv = '\n'.join(out)
+	f = open(tsvName,'w')
+	f.write(tsv)
+	f.close()
 
 
 def file_len(fname):
@@ -176,13 +198,19 @@ def _sepWords(seq, WordSize):
 	return words
 
 class glast:
-	def __init__(self,GIB=None):
+	def __init__(self,GIB=None, GOB=None):
 		'''
 		if no gib specified will chose one from annotations/ folder.
 		if no gib is present in that directory it will prompt to create one.	
 		'''
+		if GOB == None:
+			GOB = glob.glob('annotations/*.gob')[0]
+		self.GOB = GOB
+		'''
+
 		if GIB == None:
 			GIB = glob.glob('annotations/*.gib')[0]
+
 		if GIB == '':
 			print 'NO GIB present, make one?'
 			ans = raw_input('[yes/no]')
@@ -194,10 +222,10 @@ class glast:
 		self.index = pickle.load(open(GIB))
 		WS = GIB.split('.')[0].split('_')[-1]
 		self.WS = int(WS)
-
-	def glastSeq(self, seq, b = False):
 		'''
-		given a sequence it returns glasting results
+	def _glastSeqIndex(self, seq, b = False):
+		'''
+		given a sequence it returns glasting results via GIB index
 		'''
 		index = self.index
 		words = _sepWords(seq,self.WS)
@@ -223,6 +251,89 @@ class glast:
 			if b:break
 			n+=1
 			
+	def _glastSeqScan(self, seq, b = False, ws = 11,loops = 100):
+		'''
+		given a sequence it returns glasting results via scanning a gob file
+		'''
+		wordsList=_sepWords(seq,ws)
+		GOB=open(self.GOB)
+		virtual_seqs={}
+		qseq=seq
+		num_lines = file_len(self.GOB)
+		if b: num_lines = loops
+		ETA = eta.ETA(num_lines)
+		ETA.print_status()
+		exon_go={}
+		while True:	
+			ETA.print_status()
+	
+			GOBline = GOB.readline()
+			if GOBline == '':break
+			attr = GOBline.split()
+			if len(attr)==2:attr.append('None:'+'n'*ws)
+			go, url, seqs = attr
+			print go
+			#print go, url
+			seqs = seqs.split(';')
+			for seq in seqs:
+				exon,seq = seq.split(':')
+				if not exon in exon_go: exon_go.update({exon:[]})
+				exon_go[exon].append(go)
+				scanWords = _sepWords(seq,ws)
+				n=0
+				for word in scanWords:
+					if word in wordsList:
+						if not exon in virtual_seqs:
+							virtual_exon = [-1]*len(scanWords)
+							virtual_seqs.update({exon:virtual_exon})
+						virtual_seqs[exon][n]=wordsList.index(word)
+					n+=1				
+			if b:
+				loops-=1
+				if loops == 0 :break
+
+
+		grades = self.gradeMatchesD(virtual_seqs,qseq,ws)
+		
+		filter = [k for k, v in grades.items() if v>0.05]
+		DtoTSV(grades,'blast.tsv',extras = exon_go, head = ['exon',
+								    'score',
+								    'gos'])
+		##make a GOS (goScore) list {go:sum(score),...}
+		GOS={}
+		for exon, score in grades.iteritems():
+			goIDS = exon_go[exon]
+			for go in goIDS:
+				if not go in GOS: GOS.update({go:0})
+				GOS[go] += score
+		GOS_sorted = sorted(GOS.items(), key=operator.itemgetter(1))[::-1]
+		pprint.pprint(GOS_sorted)
+	
+		DtoTSV(GOS,'GOS.tsv')
+		
+
+	def gradeMatches(self,matches,original,ws):
+		'''	
+		given a list of matches it retuns a value of similarity
+		'''
+		origWords = len(original)-ws+1
+		size = min([origWords,len(matches)])
+		sequenciality = ws-1
+		for i in range(1,len(matches)):
+			if matches[i-1]+1==matches[i]:
+				sequenciality+=1.0
+		return sequenciality/size
+
+	def gradeMatchesD(self, matchD, original, ws):
+		'''
+		given a dict of exon:mathces it grades all the mathces
+		'''
+		out = dict.fromkeys(matchD.keys())
+		for exon in matchD:
+			out[exon]=self.gradeMatches(matchD[exon],original,ws)
+		return out
+
+
 	def glastExon(self, exon , b=False):
 		'''
 		given a transcript name it returns the glasting results
@@ -243,12 +354,17 @@ class glast:
 		for exon in exons:
 			results[exons] = self.glastExon(exon)
 		return results
+	def glastSeq(self, seq, b=False, scan = True, ws = 11,loops=100):
+		if scan: return self._glastSeqScan(seq=seq, b=b,ws=ws,loops=loops)
+		else: return self._glastSeqIndex(seq=seq, b=b)
+
 
 if __name__ == '__main__':
 	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
-	genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False,checkpoint = 500) 
-	#g =  glast()
-	#seq ='''ACCTCACTTGAGCCACGAGTGGGGTCAGGCATGTGGGTTTAAAGAGTTTTCCTTTGCAGAGCCTCATTTCATCCTTCATGGAGCTGCTCAGGACTTTGCATATAAGCGCTTGCCTCTGTCTTCTGTTCTGCTAGTGAGTGTGTGATGTGAGACCTTGCAGTGAGTTTGTTTTTCCTGGAATGTGGAGGGAGGGGGGGATGGGGCTTACTTGTTCTAGCTTTTTTTTTACAGACCACACAGAATGCAGGTGTCTTGACTTCAGGTCATGTCTGTTCTTTGGCAAGTAATATGTGCAGTACTGTTCCAATCTGCTGCTATTAGAATGCATTGTGACGCGACTGGAGTATGATTAAAGAAAGTTGTGTTTCCCCAAGTGTTTGGAGTAGTGGTTGTTGGAGGAAAAGCCATGAGTAACAGGCTGAGTGTTGAGGAAATGGCTCTCTGCAGCTTTAAGTAACCCGTGTTTGTGATTGGAGCCGAGTCCCTTTGCTGTGCTGCCTTAGGTAAATGTTTTTGTTCATTTCTGGTGAGGGGGGTTGGGAGCACTGAAGCCTTTAGTCTCTTCCAGATTCAACTTAAAATCTGACAAGAAATAAATCAGACAAGCAACATTCTTGAAGAAATTTTAACTGGCAAGTGGAAATGTTTTGAACAGTTCCGTGGTCTTTAGTGCATTATCTTTGTGTAGGTGTTCTCTCTCCCCTCCCTTGGTCTTAATTCTTACATGCAGGAACATTGACAACAGCAGACATCTATCTATTCAAGGGGCCAGAGAATCCAGACCCAGTAAGGAAAAATAGCCCATTTACTTTAAATCGATAAGTGAAGCAGACATGCCATTTTCAGTGTGGGGATTGGGAAGCCCTAGTTCTTTCAGATGTACTTCAGACTGTAGAAGGAGCTTCCAGTTGAATTGAAATTCACCAGTGGACAAAATGAGGACAACAGGTGAACGAGCCTTTTCTTGTTTAAGATTAGCTACTGGTAATCTAGTGTTGAATCCTCTCCAGCTTCATGCTGGAGCAGCTAGCATGTGATGTAATGTTGGCCTTGGGGTGGAGGGGTGAGGTGGGCGCTAAGCCTTTTTTTAAGATTTTTCAGGTACCCCTCACTAAAGGCACTGAAGGCTTAATGTAGGACAGCGGAGCCTTCCTGTGTGGCAAGAATCAAGCAAGCAGTATTGTATCGAGACCAAAGTGGTATCATGGTCGGTTTTGATTAGCAGTGGGGACTACCCTACCGTAACACCTTGTTGGAATTGAAGCATCCAAAGAAAATACTTGAGAGGCCCTGGGCTTGTTTTAACATCTGGAAAAAAGGCTGTTTTTATAGCAGCGGTTACCAGCCCAAACCTCAAGTTGTGCTTGCAGGGGAGGGAAAAGGGGGAAAGCGGGCAACCAGTTTCCCCAGCTTTTCCAGAATCCTGTTACAAGGTCTCCCCACAAGTGATTTCTCTGCCACATCGCCACCATGGGCCTTTGGCCTAATCACAGACCCTTCACCCCTCACCTTGATGCAGCCAGTAGCTGGATCCTTGAGGTCACGTTGCATATCGGTTTCAAGGTAACCATGGTGCCAAGGTCCTGTGGGTTGCACCAGAAAAGGCCATCAATTTTCCCCTTGCCTGTAATTTAACATTAAAACCATAGCTAAGATGTTTTATACATAGCACCTATGCAGAGTAAACAAACCAGTATGGGTATAGTATGTTTGATACCAGTGCTGGGTGGGAATGTAGGAAGTCGGATGAAAAGCAAGCCTTTGTAGGAAGTTGTTGGGGTGGGATTGCAAAAATTCTCTGCTAAGACTTTTTCAGGTGGACATAACAGACTTGGCCAAGCTAGCATCTTAGTGGAAGCAGATTCGTCAGTAGGGTTGTAAAGGTTTTTCTTTTCCTGAGAAAACAACCTTTTGTTTTCTCAGGTTTTGCTTTTTGGCCTTTCCCTAG'''
-	#print g.glastSeq(seq,b=False)
+	#genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False,checkpoint = 500) 
+	g =  glast()
+	seq ='''ACCATGGATCTCTCTGCCATCTACGAGGTGAGTACCTGTTAGACAGCATCCCGGGATCCCCGACGCACCAAACTTAGGCCC'''
+	print g.glastSeq(seq)#,b=True,loops=100)
 	#print g.glastExon('Malat1-001',b=True)#[:3]
 #
+
