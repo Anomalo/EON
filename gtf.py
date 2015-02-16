@@ -1,3 +1,5 @@
+import cPickle as pickle
+
 class gtf:
     def _splitLine(self,line,header):
         '''
@@ -21,10 +23,13 @@ class gtf:
     
     def __init__(self, f = None):
         '''
+        object to get fast queries regarding gtf data
         f = gtf file
         '''
+                
         if f == None:
             f = self.readCONFIG()
+        print f
         f = open(f,'r')
         self.header = ['seqname',
                        'source',
@@ -41,10 +46,11 @@ class gtf:
             line = f.readline()
             n+=1
             if line == '': break
-            if line[0]!='#': 
+            if line[0]!='#':
                 if 'exon' == line.split('\t')[2]:
                     bigGTFlistdict.append(self._splitLine(line, self.header))
         self.bigGTFlistdict = bigGTFlistdict
+        print 'made bigGTFlistdict'
         chrDict = {}
         for line in bigGTFlistdict:
             chromosome = line['seqname']
@@ -52,19 +58,21 @@ class gtf:
                 chrDict.update({chromosome:[]})
             chrDict[chromosome].append(line)
         self.chrDict = chrDict
+        print 'made chrDrict'
         self.bigGTFdict={}
         self.names_transcripts = {}
         for line in self.bigGTFlistdict:
-            if not line['transcript_name'] in self.bigGTFdict: 
-                self.bigGTFdict.update({line['transcript_name']:line})
+            if not line['transcript_name'] in self.bigGTFdict:
+                self.bigGTFdict.update({line['transcript_name'].upper():line})
             name  = line['gene_name']
-            if not name in self.names_transcripts:
-                self.names_transcripts.update({name:[]})            
-            self.names_transcripts[name].append(line['transcript_name']) 
+            if not name.upper() in self.names_transcripts:
+                self.names_transcripts.update({name.upper():[]})
+            self.names_transcripts[name.upper()].append(line['transcript_name'].upper())
+        print 'made bigGTFdict, and names_transcripts'
         #orders and cleans self.names_transcripts
         for i in self.names_transcripts:
             self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
-
+	print 'sorted names_transcripts\ndone __init__'
     def readCONFIG(self, fname = 'config.txt'):
         '''
         return GTF file acording to config file, a string of the .gmt file name from 
@@ -96,11 +104,11 @@ class gtf:
         '''
         genes = []
         for i in self.bigGTFlistdict:
-            if transcriptName.lower() == i['transcript_name'].lower():
+            if transcriptName.upper() == i['transcript_name'].upper():
                 genes.append(i)
         return genes[0]
         '''
-        return self.bigGTFdict[transcriptName]
+        return self.bigGTFdict[transcriptName.upper()]
     def transcriptNames(self, gene):
         '''
         given a gene name it returns a list of transcript names (exon specific)
@@ -112,7 +120,7 @@ class gtf:
                 transcripts.append(i['transcript_name'])
         return sorted(list(set(transcripts)))
         '''
-        return (self.names_transcripts[gene.lower().title()])
+        return (self.names_transcripts[gene.upper()])
 
     def getTranscriptCoords(self,transcript):
         '''
@@ -133,8 +141,11 @@ class gtf:
             genes.append(i['gene_name'])
         return sorted(set(genes))
 
-GTF = gtf()
-   
+
+def purge():
+    '''redoes thr GTF object'''
+    GTF = gtf()
+    pickle.dump(GTF,open('annotations/gtf.p','wb'))    
 def getGene(chromosome, start, end):
     '''
     given chromosome, start, and end of a gene it returns the
@@ -166,8 +177,11 @@ def getGeneList():
     returns a list of all the genes
     '''
     return GTF.getGeneList()
+GTF = gtf()
 
-
+#GTF = pickle.load(open('annotations/gtf.p','rb'))
+#purge()
+    
 
 if __name__ == '__main__':
     while True:
