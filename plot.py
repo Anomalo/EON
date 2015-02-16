@@ -28,7 +28,7 @@ def color(txt):
 	b = float(h[-7:-5])/100
 	return r,g,b
 	
-def pieplot(tsv):
+def pieplot(tsv,show=False):
 	'''pieplots atsv file with a header'''
 	f = open(tsv,'r')
 	exon = f.read()
@@ -44,12 +44,14 @@ def pieplot(tsv):
 			vals.append(val)
 			c = color(label)
 			colors.append(c)
-			labels.append(wrap(label.replace('_',' '),10))
+			labels.append(wrap(label.replace('_',' ')+' '+str(round(val,2)),10))
 	plt.close('all')
-	f, ax = plt.subplots(figsize(10,10))
-	ax.pie(vals, labels=labels,colors=colors,autopct='%1,1f%%')
+	plt.figure(figsize=(13,13))
+	ax = plt.axes(aspect=1)
+	#f, ax = plt.subplots(figsize(10,10))
+	plt.pie(vals, labels=labels,colors=colors,)
 	ax.set_title(head)
 	fname = tsv[:-3]+'png'
 	plt.savefig(fname)
-
+	if show:plt.show()
 	

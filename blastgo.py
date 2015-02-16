@@ -2,6 +2,7 @@ from pprint import pprint
 from threading import Thread
 modules  = [	'os',
 		'eta',
+		'plot',
 		'operator',
 		'sys',
 		'cPickle as pickle',
@@ -390,6 +391,7 @@ class glast:
 			results[exon] = self.glastExon(exon,dir=dir,
 							 v=True, quick=True)
 			
+		plot.pieplot('results/'+gene)
 		return results
 	def glastSeq(self, 
 			seq, 
@@ -402,7 +404,8 @@ class glast:
 			v=False,
 			fname='gos.tsv',
 			header=''):
-		if scan: return self._glastSeqScan(seq=seq, b=b,ws=ws,
+		if scan: return self._glastSeqScan(seq=seq, exon=exon,
+							b=b,ws=ws,
 							loops=loops,
 							guide=guide,
 							v=v,fname=fname,
