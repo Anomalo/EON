@@ -15,11 +15,12 @@ for module in modules:
 	#print 'importing',module
 	exec('import '+module)
 
-def DtoTSV(d,tsvName,sep='\t',extras=None,head=None):
+def DtoTSV(d,tsvName,sep='\t',extras=None,head=None,header=None):
 	'''
 	it saves a dictionary into a csv file
 	'''
 	out = []
+	if not header == None:out.append(header)
 	if head != None:
 		out =[sep.join(head)]
 	for x,y in d.iteritems():
@@ -252,10 +253,20 @@ class glast:
 			if b:break
 			n+=1
 			
-	def _glastSeqScan(self, seq, b = False, ws = 11,loops = 100,guide=None, v=False,fname='GOS.tsv'):
+	def _glastSeqScan(self, 
+			  seq,
+			  exon,
+			  b = False, 
+			  ws = 11,
+			  loops = 100,
+			  guide=None, 
+			  v=False,
+			  fname='GOS.tsv',
+			  header=None):
 		'''
 		given a sequence it returns glasting results via scanning a gob file
 		'''
+		exonQuery=exon
 		wordsList=_sepWords(seq,ws)
 		GOB=open(self.GOB)
 		virtual_seqs={}
@@ -280,6 +291,7 @@ class glast:
 			if v:print 'glasting',go
 			for seq in seqs:
 				exon,seq = seq.split(':')
+				if exon == exonQuery: continue 
 				if not exon in exon_go: exon_go.update({exon:[]})
 				exon_go[exon].append(go)
 				scanWords = _sepWords(seq,ws)
@@ -311,8 +323,8 @@ class glast:
 				GOS[go] += score
 		GOS_sorted = sorted(GOS.items(), key=operator.itemgetter(1))[::-1]
 		pprint.pprint(GOS_sorted)
-	
-		DtoTSV(GOS,fname)
+		
+		DtoTSV(GOS,fname,header=header)
 		
 
 	def gradeMatches(self,matches,original,ws):
@@ -337,7 +349,7 @@ class glast:
 		return out
 
 
-	def glastExon(self, exon , b=False, quick = True, v=False,dir=None):
+	def glastExon(self, exon , b=False, quick = True, v=False,dir=None,header=''):
 		'''
 		given a transcript name it returns the glasting results
 		'''
@@ -345,6 +357,7 @@ class glast:
 		print 'glasting',exon
 		chromosome,start,end,strand = gtf.getTranscriptCoords(exon)
 		seq = fa.seq_coords(chromosome,start,end,strand)
+		header = '%(exon)s\n%(chromosome)s:%(start)s-%(end)s (%(strand)s)'%locals()
 		if dir ==  None:dir = 'GOS_'+exon.split('-')[0]
 		if not os.path.exists(dir): os.makedirs(dir)
 		fname = '/'.join([dir,exon+'.tsv'])
@@ -352,10 +365,12 @@ class glast:
 		if quick:
 			gene = exon.split('-')[0].upper()
 			guide = go.go.GOgeneNames(gene)
-			if v:print 'only scanning',guide
-			return self.glastSeq(seq, b = b, guide=guide,v=v,fname=fname)
+			if v:print header
+			return self.glastSeq(seq, exon, b = b, guide=guide,
+						v=v,fname=fname,header=header)
 		else:
-			return self.glastSeq(seq, b = b,guide=None,v=v,fname=fname)
+			return self.glastSeq(seq, exon, b = b,guide=None,v=v,
+						fname=fname,header=header)
 			
 	def glastGene(self, gene,v=False):
 		'''
@@ -372,11 +387,26 @@ class glast:
 		for exon in exons:
 			if v:print exon
 			
-			results[exon] = self.glastExon(exon,dir=dir, v=False)
+			results[exon] = self.glastExon(exon,dir=dir,
+							 v=True, quick=True)
 			
 		return results
-	def glastSeq(self, seq, b=False, scan = True, ws = 11,loops=100, guide = None,v=False,fname='gos.tsv'):
-		if scan: return self._glastSeqScan(seq=seq, b=b,ws=ws,loops=loops,guide=guide,v=v,fname=fname)
+	def glastSeq(self, 
+			seq, 
+			exon, 
+			b=False, 
+			scan = True, 
+			ws = 11,
+			loops=100, 
+			guide = None,
+			v=False,
+			fname='gos.tsv',
+			header=''):
+		if scan: return self._glastSeqScan(seq=seq, b=b,ws=ws,
+							loops=loops,
+							guide=guide,
+							v=v,fname=fname,
+							header=header)
 		else: return self._glastSeqIndex(seq=seq, b=b)
 
 
