@@ -1,5 +1,8 @@
 import cPickle as pickle
 
+def getGTF(taxon='Mus musculus'):
+	pass
+
 class gtf:
     def _splitLine(self,line,header):
         '''
