@@ -63,7 +63,7 @@ class GO:
 		#GOfreq = {} #{GOID: frequency...}
 
 	def mkGOdef(self):
-		#makes a self.GOdef dictionary of {GOID:GO long name}
+		'''makes a self.GOdef dictionary of {GOID:GO long name}'''
 		GOdef = {}
 		for line in self.GOTXT:
 			items = line.split()
@@ -73,7 +73,7 @@ class GO:
 		self.GOdef = GOdef
 
 	def mkGOfreq(self):
-		#makes a self.GOfreq dictionary of {GOID : 0.45 (frequency of that annotation)}
+		'''makes a self.GOfreq dictionary of {GOID : 0.45 (frequency of that annotation)}'''
 		GOfreq = {}
 		geneNumber = len(self.GOgenes)
 		for line in self.GOTXT:
@@ -87,7 +87,7 @@ class GO:
 		
 	
 	def mkGOgenes(self):
-		# makes a self.GOgenes dictionary of {gene : [GOID, GOID ...]}
+		''' makes a self.GOgenes dictionary of {gene : [GOID, GOID ...]}'''
 		GOgenes = {}
 		for line in self.GOTXT:
 			items = line.split()
@@ -99,16 +99,23 @@ class GO:
 					GOgenes.update({gene:[]})
 				GOgenes[gene].append(GOID)
 		self.GOgenes = GOgenes
+	def GOgeneNames(self, gene):
+		'''returns a list of go names for that gene'''
+		goids = self.GOgenes[gene]
+		gonames = []
+		for id in goids:
+			gonames.append(self.GOdef[id])
+		return gonames
 
 	def readGO(self):
-		# makes a self.GOTX wich is a list of all the lines of the .gmt file
+		''' makes a self.GOTXT wich is a list of all the lines of the .gmt file'''
 		f = open(self.GOfile,'r')
 		self.GOTXT = f.read().splitlines()
 		f.close()
 
 
 	def readCONFIG(self, fname = 'config.txt'):
-		# makes a self.GOfile, a string of the .gmt file name from the config.txt file
+		''' makes a self.GOfile, a string of the .gmt file name from the config.txt file'''
 		f = open(fname, 'r')
 		exec(f.read())
 		f.close()

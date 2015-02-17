@@ -1,0 +1,2 @@
+GO = 'Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt'
+GTF = 'Mus_musculus.GRCm38.78.gtf' 

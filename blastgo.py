@@ -2,7 +2,7 @@ from pprint import pprint
 from threading import Thread
 modules  = [	'os',
 		'eta',
-		'plot',
+		#'plot',
 		'operator',
 		'sys',
 		'cPickle as pickle',
@@ -312,8 +312,8 @@ class glast:
 		grades = self.gradeMatchesD(virtual_seqs,qseq,ws)
 		
 		filter = [k for k, v in grades.items() if v>0.05]
-		DtoTSV(grades,'blast.tsv',extras = exon_go, head = ['exon',
-								    'score',
+		#DtoTSV(grades,'blast.tsv',extras = exon_go, head = ['exon',
+		#						    'score',
 								    'gos'])
 		##make a GOS (goScore) list {go:sum(score),...}
 		GOS={}
@@ -391,7 +391,7 @@ class glast:
 			results[exon] = self.glastExon(exon,dir=dir,
 							 v=True, quick=True)
 			
-		plot.pieplot('results/'+gene)
+		#plot.plotDIR('results/'+gene)
 		return results
 	def glastSeq(self, 
 			seq, 
