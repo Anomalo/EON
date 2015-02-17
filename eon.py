@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 modules = ['glob','gtf','go','blastgo','fa']
 for module in modules:
 	print 'importing',module
