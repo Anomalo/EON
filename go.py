@@ -44,7 +44,7 @@ def updateGMTs(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
 			del gmtsAvail[name]
 	for name, url in gmtsAvail.items():
 		taxon = taxon.upper().replace(' ','_')
-		if not taxon in name.upper()]: continue
+		if not taxon in name.upper(): continue
 		name = prefix + name
 		os.system('clear')
 		os.system(' '.join(['wget',
