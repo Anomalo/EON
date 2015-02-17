@@ -26,7 +26,7 @@ def getOnlineGMTs():
 	return taxids
 
 
-def updateGMTs(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
+def getGMT(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
 	'''
 	Checks available .gmt files online and downloads more if available
 	purge -- set True to remove all existing .gmt files and redownload them
@@ -58,6 +58,8 @@ def updateGMTs(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
 		os.system('rm '+name+'.zip')
 
 #updateGMTs(purge = True)
+
+
 class GO:
 	def __init__(self):
 		self.readCONFIG()
@@ -158,9 +160,8 @@ class GO:
 		
 		return GOenriched
 
-
+'''
 go = GO()
-
 def enrich(genes,key='GOID', P_cut_off = 0.05):
 	return go.enrich(genes, key, P_cut_off)
-
+'''
