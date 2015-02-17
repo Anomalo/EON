@@ -26,19 +26,25 @@ def getOnlineGMTs():
 	return taxids
 
 
-def updateGMTs(purge = False, prefix = 'annotations/go/'):
+def updateGMTs(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
 	'''
 	Checks available .gmt files online and downloads more if available
 	purge -- set True to remove all existing .gmt files and redownload them
+	prefix -- directory where to save file
+	taxon -- taxon of interest
 	'''
 	gmtsAvail = getOnlineGMTs()
-	if purge: os.system('rm -rf '+prefix+'*')
-	gmtsDownloaded = glob.glob(prefix+'*')
+	if purge: os.system('rm -rf '+prefix+'*.gmt')
+	
+	gmtsDownloaded = glob.glob(prefix+'*.gtm')
+	
 	for gmt in gmtsDownloaded:
 		name = gmt.split('/')[-1]
 		if name in gmtsAvail:
 			del gmtsAvail[name]
 	for name, url in gmtsAvail.items():
+		taxon = taxon.upper().replace(' ','_')
+		if not taxon in name.upper()]: continue
 		name = prefix + name
 		os.system('clear')
 		os.system(' '.join(['wget',
