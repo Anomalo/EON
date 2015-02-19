@@ -67,8 +67,22 @@ class GO:
 		self.mkGOgenes()
 		self.mkGOfreq()
 		self.mkGOdef()
+		self.mkGenesGO()
 		#GOgenes = {} #{gene:[goIDs]...}
 		#GOfreq = {} #{GOID: frequency...}
+		#genesGO = {'GOlabel':[genes]}
+	def mkGenesGO(self):
+		'''makes a self.GenesGO dictionary of {GOname:[genes]}'''
+		genesGO={}
+		for line in self.GOTXT:
+			items = line.split()
+			GOlabel = items.pop(0)
+			url =  items.pop(0)
+			genesGO[GOlabel]=[]
+			for gene in items:
+				gene = gene.upper()			
+				genesGO[GOlabel].append(gene)
+		self.genesGO=genesGO
 
 	def mkGOdef(self):
 		'''makes a self.GOdef dictionary of {GOID:GO long name}'''
@@ -109,11 +123,14 @@ class GO:
 		self.GOgenes = GOgenes
 	def GOgeneNames(self, gene):
 		'''returns a list of go names for that gene'''
-		goids = self.GOgenes[gene]
+		goids = self.GOgenes[gene.upper()]
 		gonames = []
 		for id in goids:
 			gonames.append(self.GOdef[id])
 		return gonames
+	def GenesWithGO(self, GO):
+		genes = self.genesGO[GO]
+		return genes
 
 	def readGO(self):
 		''' makes a self.GOTXT wich is a list of all the lines of the .gmt file'''

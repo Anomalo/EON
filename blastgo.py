@@ -1,7 +1,6 @@
 from pprint import pprint
 from threading import Thread
 modules  = [	'os',
-		'eta',
 		'plot',
 		'operator',
 		'sys',
@@ -10,6 +9,7 @@ modules  = [	'os',
 		'pprint',
 		'go',
 		'fa',
+		'gtf',
 		'csv',
 		]
 
@@ -50,146 +50,6 @@ def file_len(fname):
 		c = f.read().count('\n')
 		return c	
 
-
-def genGOB(gmt=None):
-	'''
-	given a gmtfile, it creates a .gob (GOBlast) file
-	a row of BGO looks like:
-	[go term]	[all exons of all genes with that go concated by ';']
-	'''
-	import gtf
-	if gmt == None:
-		gmt = glob.glob('annotations/*.gmt')[0]
-		if gmt == '':
-			print 'NO gmt present'
-			print 'download dataset from http://www.go2msig.org/cgi-bin/prebuilt.cgi'
-			quit()
-	f = open(gmt)
-	num_lines = file_len(gmt)
-	newFile = gmt[:-3]+'gob'
-	open(newFile, 'w').close()
-	newFile = open(newFile,'a')
-	#print 1
-	genesSeen={}
-	n=0.0
-	ETA = eta.ETA(num_lines)
-	for i in range(num_lines):
-		line = f.readline().split()
-		GO = line.pop(0)
-		ETA.print_status(extra=GO)
-		url = line.pop(0)
-		genes = line
-		exons = []
-		print GO,';'
-		for gene in genes:
-			if not gene in genesSeen:
-				try:
-					exonNames = gtf.transcriptNames(gene)
-					for exon in exonNames:
-						#print exon
-						c,s,e,strand = gtf.getTranscriptCoords(exon)
-						exons.append( exon+':'+fa.seq_coords(c,s,e,strand))
-					genesSeen.update({gene:exons})
-				except:
-					genesSeen.update({gene:[]})
-					#print 'fail','\t',gene
-			#print '\t',gene
-			exons = genesSeen[gene]
-		exons = ';'.join(exons)
-		newLine = GO + '\t' + url + '\t' + exons + '\n'
-		newFile.write(newLine)
-		n+=1
-
-
-def genGIB(gob=None, word_size=11, b=False, checkpoint=1000,load=True):
-	'''
-	makes a GIB (gob index), from a gob file. if no gob is stated it will look for one in 
-	annotations/ folder. if no gob present there it will promt to create one.
-	'''
-	if gob == None:
-		gob = glob.glob('annotations/*.gob')[0]
-		if gob == '':
-			print 'NO GOB present, make one?'
-			ans = raw_input('[yes/no]')
-			if ans =='yes':
-				genGOB(gmt = None)
-				gob = glob.glob('annotations/*.gob')[0]
-			else: quit()	
-	print 'Gibbing'
-	num_lines = file_len(gob)
-	gibfname = gob[:-4]+'_ws_'+str(word_size)+'.gib'
-	gob = open(gob)
-	#GIB = {}
-
-	if load: mode = 'c'
-	else:mode  = 'n'
-	#GIB = shelve.open(gibfname,mode,writeback=True)
-	if load:
-		try:
-			GIB = pickle.load(open(gibfname,'rb'))
-		except:
-			load = False
-	if not load: GIB={'position':1,'exon_sizes':{}}
-	position=GIB['position']-1
-	position = 0
-	n=0.0
-	ETA = eta.ETA(num_lines)
-	def _save(target,content):
-		pickle.dump(content,open(target,'wb'))
-		#print 'saved'
-	for l in range(position,num_lines):
-		try: ETA.touch_status(prefix='GIB')
-		except: pass
-		line = gob.readline()
-		go, url, seqs = line.split('\t')
-		goid = url.split(':')[-1]
-		seqs = seqs.split(';')
-		for seqIndex in range(len(seqs)):
-			if not  seqs[seqIndex].replace('\n',"") == '':
-				exon, seq = seqs[seqIndex].replace('\n',"").split(':')
-				exonSize = len(seq)
-
-				if not exon in GIB['exon_sizes']:
-					exon_sizes = GIB['exon_sizes']
-					exon_sizes.update({exon:exonSize})
-					GIB['exon_sizes']=exon_sizes
-				words = len(seq)-word_size
-				for i in range(words):
-					word = seq[i:i+word_size]
-					if not word in GIB: GIB.update({word:[]})
-					if not word in GIB:print word in GIB
-					oldList = GIB[word]
-					newEntry = {	'go':go,
-							#'goID':goid,
-							#'url':url,
-							#'line':l,
-							#'seqNumber':seqIndex,
-							'location':i,
-							'exon':exon,
-							#'exonSize':exonSize
-							}
-					if not newEntry in oldList:
-						oldList.append(newEntry)
-						GIB[word] = oldList
-		n+=1
-		if l%checkpoint == 0: # saves the dictionary every checkpoint lines
-			GIB['position']=l
-			#print l
-			a=Thread(target=_save,args=(gibfname,GIB))
-			a.start()
-			a.join()
-				#pickle.dump(GIB,open(gibfname,'wb'))
-			#GIB.sync()
-		if b:
-			print n
-			break
-	#GIB.close()
-	a=Thread(target=_save,args=(gibfname,GIB))
-	a.start()
-	a.join()
-
-	#pickle.dump(GIB,open(gibfname,'wb'))
-
 	
 def _sepWords(seq, WordSize):
 	wordsNumber = len(seq)-WordSize
@@ -198,69 +58,35 @@ def _sepWords(seq, WordSize):
 		word = seq[i:i+WordSize]
 		words.append(word)
 	return words
+def exonSeqs(genes,v=False):
+	'''returns a a list of tuples of [(exonname,seq),...]'''
+	exonsOut=[]
+	for gene in genes:
+		exons = gtf.transcriptNames(gene)
+		for exon in exons:
+			if v:print exon
+			c, s, e,strand = gtf.getTranscriptCoords(exon)
+			seq = fa.seq_coords(c, s, e,strand)
+			exonsOut.append((exon,seq))
+	return exons
 
 class glast:
-	def __init__(self,GIB=None, GOB=None):
+	def __init__(self,v=False ,output='results',ws=11):
 		'''
 		if no gib specified will chose one from annotations/ folder.
 		if no gib is present in that directory it will prompt to create one.	
 		'''
-		if GOB == None:
-			GOB = glob.glob('annotations/*.gob')[0]
-		self.GOB = GOB
-		'''
-
-		if GIB == None:
-			GIB = glob.glob('annotations/*.gib')[0]
-
-		if GIB == '':
-			print 'NO GIB present, make one?'
-			ans = raw_input('[yes/no]')
-			if ans =='yes':
-				WS = int(raw_input('what word size? '))
-				genGIB(gob=none,word_size=WS,b=False)
-				GIB = glob.glob('annotations/*.gib')[0]
-			else: quit()
-		self.index = pickle.load(open(GIB))
-		WS = GIB.split('.')[0].split('_')[-1]
-		self.WS = int(WS)
-		'''
-	def _glastSeqIndex(self, seq, b = False):
-		'''
-		given a sequence it returns glasting results via GIB index
-		'''
-		index = self.index
-		words = _sepWords(seq,self.WS)
-		matches = []
-		n = 0
-		possibilities = {}
-		for word in words:
-			if word in index:
-				wordMatches = index[word]
-				for wordMatch in wordMatches:
-					exon = wordMatch['exon']
-					if not exon in possibilities:
-						exonSize = wordMatch['exonSize']
-						url = wordMatch['url']
-						go = wordMatch['go']
-						goID = wordMatch['goID']
-						mockStrand = [None]*(exonSize-self.WS)
-						data = {'url':url,'go':go,'goID':goID}
-						possibilities.update({exon:{'strand':mockStrand, 'data':wordMatch}})
-					location = wordMatch['location']
-					possibilities[exon]['strand'][location]=n
-					print possibilities
-			if b:break
-			n+=1
+		self.output = output
+		self.v = v
+		self.WS = ws
+		self.exonSeqOfGO={}
 			
-	def _glastSeqScan(self, 
+	def glastSeq(self, 
 			  seq,
 			  exon,
 			  b = False, 
 			  ws = 11,
-			  loops = 100,
-			  guide=None, 
-			  v=False,
+			  loops = 100, 
 			  fname='GOS.tsv',
 			  header=None):
 		'''
@@ -268,32 +94,32 @@ class glast:
 		'''
 		exonQuery=exon
 		wordsList=_sepWords(seq,ws)
-		GOB=open(self.GOB)
 		virtual_seqs={}
 		qseq=seq
-		num_lines = file_len(self.GOB)
+		v=self.v
 		if b: num_lines = loops
-		#ETA = eta.ETA(num_lines)
-		#ETA.print_status()
 		exon_go={}
-		while True:
-			#try:ETA.print_status()
-			#except:pass
-			GOBline = GOB.readline()
-			if GOBline == '':break
-			attr = GOBline.split()
-			if len(attr)==2:attr.append('None:'+'n'*ws)
-			go, url, seqs = attr
-			if guide != None:
-				if not go in guide:
-					continue
-			seqs = seqs.split(';')
-			if v:print 'glasting',go
+		import go
+		GO = go.GO()
+		geneName = exon.split('-')[0]
+		GOlabels = GO.GOgeneNames(geneName)
+		for golabel in GOlabels:
+
+			if not golabel in self.exonSeqOfGO:
+				genes = GO.GenesWithGO(golabel)			
+				seqs = exonSeqs(genes,v=v)
+				self.exonSeqOfGO[golabel]=seqs
+			else: seqs = self.exonSeqOfGO[golabel]
 			for seq in seqs:
-				exon,seq = seq.split(':')
-				if exon == exonQuery: continue 
+				exon,seq = seq
+				if exon == exonQuery: continue
+				if v:
+					os.system('clear')
+					print header
+					print golabel
+					print exon 
 				if not exon in exon_go: exon_go.update({exon:[]})
-				exon_go[exon].append(go)
+				exon_go[exon].append(golabel)
 				scanWords = _sepWords(seq,ws)
 				n=0
 				for word in scanWords:
@@ -349,12 +175,12 @@ class glast:
 		return out
 
 
-	def glastExon(self, exon , b=False, quick = True, v=False,dir=None,header=''):
+	def glastExon(self, exon , b=False,dir=None,header=''):
 		'''
 		given a transcript name it returns the glasting results
 		'''
 		import gtf
-		print 'glasting',exon
+		v=self.v
 		chromosome,start,end,strand = gtf.getTranscriptCoords(exon)
 		seq = fa.seq_coords(chromosome,start,end,strand)
 		header = '%(exon)s\n%(chromosome)s:%(start)s-%(end)s (%(strand)s)'%locals()
@@ -362,22 +188,20 @@ class glast:
 		if not os.path.exists(dir): os.makedirs(dir)
 		fname = '/'.join([dir,exon+'.tsv'])
 		#fname = '%(dir)s/%(exon)s.tsv'%{dir:dir,exon:exon}
-		if quick:
-			gene = exon.split('-')[0].upper()
-			GO = go.GO()
-			guide = GO.GOgeneNames(gene)
-			if v:print header
-			return self.glastSeq(seq, exon, b = b, guide=guide,
-						v=v,fname=fname,header=header)
-		else:
-			return self.glastSeq(seq, exon, b = b,guide=None,v=v,
-						fname=fname,header=header)
+		gene = exon.split('-')[0].upper()
+		GO = go.GO()
+		guide = GO.GOgeneNames(gene)
+		if v:print header
+		return self.glastSeq(seq, exon, b = b,
+					fname=fname,header=header,ws=self.WS)
 			
-	def glastGene(self, gene,v=False,output='results'):
+	def glastGene(self, gene):
 		'''
 		given a gene short name, it returns the glasting
 		results of all transcripts in a dictionary format
 		'''
+		v=self.v
+		output=self.output
 		print 'importing gtf'
 		import gtf
 		exons = gtf.transcriptNames(gene)
@@ -389,31 +213,11 @@ class glast:
 			if v:print exon
 			
 			results[exon] = self.glastExon(exon,dir=dir,
-							 v=True, quick=True,
 							 )
 			
 		plot.plotDIR(dir)
 		return results
-	def glastSeq(self, 
-			seq, 
-			exon, 
-			b=False, 
-			scan = True, 
-			ws = 11,
-			loops=100, 
-			guide = None,
-			v=False,
-			fname='gos.tsv',
-			header='',
-			):
-		if scan: return self._glastSeqScan(seq=seq, exon=exon,
-							b=b,ws=ws,
-							loops=loops,
-							guide=guide,
-							v=v,fname=fname,
-							header=header,
-							)
-		else: return self._glastSeqIndex(seq=seq, b=b)
+	
 
 
 def main():
