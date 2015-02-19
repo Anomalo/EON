@@ -1,4 +1,3 @@
-from scipy import stats
 import glob
 import urllib
 import os
@@ -26,18 +25,19 @@ def getOnlineGMTs():
 	return taxids
 
 
-def getGMT(purge = False, prefix = 'annotations/',taxon='Mus musculus'):
+def getGMT(purge = False, dir = 'annotations/',taxon='Mus musculus'):
 	'''
 	Checks available .gmt files online and downloads more if available
 	purge -- set True to remove all existing .gmt files and redownload them
 	prefix -- directory where to save file
 	taxon -- taxon of interest
 	'''
+	prefix = dir
+
 	gmtsAvail = getOnlineGMTs()
 	if purge: os.system('rm -rf '+prefix+'*.gmt')
 	
 	gmtsDownloaded = glob.glob(prefix+'*.gtm')
-	
 	for gmt in gmtsDownloaded:
 		name = gmt.split('/')[-1]
 		if name in gmtsAvail:
@@ -140,6 +140,9 @@ class GO:
 		key --  what key to use for the dictionary to return, default 'GOID' otherwise use GOlabel
 		P_cut_off -- the P value to filter with.
 		'''
+		from scipy import stats
+
+		
 		GOfound = []
 		for gene in genes:
 			GOfound += self.GOgenes[gene.upper()]
@@ -159,6 +162,7 @@ class GO:
 				del GOenriched[GOID]
 		
 		return GOenriched
+
 
 '''
 go = GO()

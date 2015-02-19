@@ -2,7 +2,7 @@ from pprint import pprint
 from threading import Thread
 modules  = [	'os',
 		'eta',
-		#'plot',
+		'plot',
 		'operator',
 		'sys',
 		'cPickle as pickle',
@@ -12,6 +12,7 @@ modules  = [	'os',
 		'fa',
 		'csv',
 		]
+
 for module in modules:
 	#print 'importing',module
 	exec('import '+module)
@@ -70,12 +71,12 @@ def genGOB(gmt=None):
 	newFile = open(newFile,'a')
 	#print 1
 	genesSeen={}
-	ETA = eta.ETA(num_lines)
 	n=0.0
+	ETA = eta.ETA(num_lines)
 	for i in range(num_lines):
-		ETA.touch_status(prefix='GOB')
 		line = f.readline().split()
 		GO = line.pop(0)
+		ETA.print_status(extra=GO)
 		url = line.pop(0)
 		genes = line
 		exons = []
@@ -99,8 +100,6 @@ def genGOB(gmt=None):
 		newFile.write(newLine)
 		n+=1
 
-	os.system('rm *.remainder')
-	os.system('touch DONE.remainder')
 
 def genGIB(gob=None, word_size=11, b=False, checkpoint=1000,load=True):
 	'''
@@ -314,7 +313,7 @@ class glast:
 		filter = [k for k, v in grades.items() if v>0.05]
 		#DtoTSV(grades,'blast.tsv',extras = exon_go, head = ['exon',
 		#						    'score',
-								    'gos'])
+		#						    'gos'])
 		##make a GOS (goScore) list {go:sum(score),...}
 		GOS={}
 		for exon, score in grades.iteritems():
@@ -365,7 +364,8 @@ class glast:
 		#fname = '%(dir)s/%(exon)s.tsv'%{dir:dir,exon:exon}
 		if quick:
 			gene = exon.split('-')[0].upper()
-			guide = go.go.GOgeneNames(gene)
+			GO = go.GO()
+			guide = GO.GOgeneNames(gene)
 			if v:print header
 			return self.glastSeq(seq, exon, b = b, guide=guide,
 						v=v,fname=fname,header=header)
@@ -373,7 +373,7 @@ class glast:
 			return self.glastSeq(seq, exon, b = b,guide=None,v=v,
 						fname=fname,header=header)
 			
-	def glastGene(self, gene,v=False):
+	def glastGene(self, gene,v=False,output='results'):
 		'''
 		given a gene short name, it returns the glasting
 		results of all transcripts in a dictionary format
@@ -382,16 +382,17 @@ class glast:
 		import gtf
 		exons = gtf.transcriptNames(gene)
 		results = dict.fromkeys(exons)
-		dir = 'results/'+gene
+		dir = output+'/'+gene
 		if not os.path.exists(dir): os.makedirs(dir)		
 		if v:print exons
 		for exon in exons:
 			if v:print exon
 			
 			results[exon] = self.glastExon(exon,dir=dir,
-							 v=True, quick=True)
+							 v=True, quick=True,
+							 )
 			
-		#plot.plotDIR('results/'+gene)
+		plot.plotDIR(dir)
 		return results
 	def glastSeq(self, 
 			seq, 
@@ -403,21 +404,24 @@ class glast:
 			guide = None,
 			v=False,
 			fname='gos.tsv',
-			header=''):
+			header='',
+			):
 		if scan: return self._glastSeqScan(seq=seq, exon=exon,
 							b=b,ws=ws,
 							loops=loops,
 							guide=guide,
 							v=v,fname=fname,
-							header=header)
+							header=header,
+							)
 		else: return self._glastSeqIndex(seq=seq, b=b)
 
 
 def main():
-	gene = sys.argv[-1]
-	print 'glasting ' +gene
-	g = glast()
-	g.glastGene(gene.upper(),v=True)#[:3]
+	pass
+#	gene = sys.argv[-1]
+#	print 'glasting ' +gene
+#	g = glast()
+#	g.glastGene(gene.upper(),v=True)#[:3]
 	
 if __name__ == '__main__':
 	main()

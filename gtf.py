@@ -94,7 +94,6 @@ class gtf:
         #orders and cleans self.names_transcripts
         for i in self.names_transcripts:
             self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
-	print 'sorted names_transcripts\ndone __init__'
     def readCONFIG(self, fname = 'config.txt'):
         '''
         return GTF file acording to config file, a string of the .gmt file name from 
