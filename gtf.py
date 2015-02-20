@@ -51,7 +51,6 @@ class gtf:
                 
         if f == None:
             f = self.readCONFIG()
-        print f
         f = open(f,'r')
         self.header = ['seqname',
                        'source',
@@ -72,7 +71,6 @@ class gtf:
                 if 'exon' == line.split('\t')[2]:
                     bigGTFlistdict.append(self._splitLine(line, self.header))
         self.bigGTFlistdict = bigGTFlistdict
-        print 'made bigGTFlistdict'
         chrDict = {}
         for line in bigGTFlistdict:
             chromosome = line['seqname']
@@ -80,7 +78,6 @@ class gtf:
                 chrDict.update({chromosome:[]})
             chrDict[chromosome].append(line)
         self.chrDict = chrDict
-        print 'made chrDrict'
         self.bigGTFdict={}
         self.names_transcripts = {}
         for line in self.bigGTFlistdict:
@@ -90,7 +87,6 @@ class gtf:
             if not name.upper() in self.names_transcripts:
                 self.names_transcripts.update({name.upper():[]})
             self.names_transcripts[name.upper()].append(line['transcript_name'].upper())
-        print 'made bigGTFdict, and names_transcripts'
         #orders and cleans self.names_transcripts
         for i in self.names_transcripts:
             self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
@@ -122,26 +118,15 @@ class gtf:
         given a transcript name it returns the GFT data of that transcript in a 
         dictionaty.
         '''
-        '''
-        genes = []
-        for i in self.bigGTFlistdict:
-            if transcriptName.upper() == i['transcript_name'].upper():
-                genes.append(i)
-        return genes[0]
-        '''
         return self.bigGTFdict[transcriptName.upper()]
     def transcriptNames(self, gene):
         '''
         given a gene name it returns a list of transcript names (exon specific)
         '''
-        '''
-        transcripts = []
-        for i in self.bigGTFlistdict:
-            if gene.lower() == i['gene_name'].lower():
-                transcripts.append(i['transcript_name'])
-        return sorted(list(set(transcripts)))
-        '''
-        return (self.names_transcripts[gene.upper()])
+	if gene.upper() in self.names_transcripts:
+
+	        return (self.names_transcripts[gene.upper()])
+	else: return []
 
     def getTranscriptCoords(self,transcript):
         '''
