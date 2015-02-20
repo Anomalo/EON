@@ -89,11 +89,12 @@ def main():
 		genes =genes +  options.gene.split()
 	if options.input != '':
 		f = open(options.input,'r')
-		genes = f.read()
+		genesf = f.read()
 		f.close()
-		genes = genes + genes.split()
+		genes = genes + genesf.split()
 	
 	if genes!=[]:
+		if v:print 'will glast the exons of: ',', '.join(genes)
 		if not bsub: 
 			import blastgo
 			g = blastgo.glast(v=v,output=output,ws=ws)
