@@ -20,11 +20,12 @@ def check_files(dir = 'annotations/',taxon='mus musculus'):
 		import GTF
 		gtf.getGTF(taxon = taxon, dir = dir)
 		reload(gtf)
-	#check gob
-	#f = glob.glob(dir+'*.gob')
-	#if f == []: 
-	#	blastgo.genGOB()
-
+	#check obo
+	f = glob.glob(dir+'*.obo')
+	if f == []: 
+		import obo
+		obo.getOBO(dir = dir)
+		reload(obo)
 	
 		
 def main():
