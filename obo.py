@@ -20,6 +20,7 @@ class OBO:
 	
 	def stepList(self, GO):
 		steps = []
+		if not GO in self.OBO: return []
 		while True:
 			steps.append((GO,self.OBO[GO]['name']))
 			if not 'is_a' in self.OBO[GO]:break
@@ -60,3 +61,38 @@ class OBO:
 		if len(ladder)<steps:return steps[0]
 		else: return ladder[-steps]
 
+	def filterGMT(self,gmt,level=3,save=True,v=False):
+		'''
+		filters a gmt ensuring all go annotations are at the same level
+		saves a gmtf file and returns the path to the new gmt
+		reccomended to use:
+			gmt = obo.filterGMT(gmt[args])
+
+		'''
+		f = open(gmt)
+		out = []
+		outName = gmt.replace('.gmt','_'+str(level)+'.gmtf')
+		while True:
+			line = f.readline()
+			if line =='':break
+			id = line.split('=')[-1].split()[0]
+			if len(self.stepList(id))==level:
+				if v:
+					print line.split()[0]
+				out.append(line)
+
+
+		f.close()
+		if save:
+			f = open(outName,'w')
+			f.write('\n'.join(out))
+			f.close()
+			return outName
+
+'''
+obo = 'annotations/go.obo'
+o = OBO(obo)
+import glob
+gmt = glob.glob('annotations/*.gmt')[0]
+print o.filterGMT(gmt,level=2,v=True,save=False)
+'''

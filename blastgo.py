@@ -48,9 +48,9 @@ def file_len(fname):
 	except:
 		f = open(fname)
 		c = f.read().count('\n')
-		return c	
+		return c
 
-	
+
 def _sepWords(seq, WordSize):
 	wordsNumber = len(seq)-WordSize
 	words = []
@@ -58,36 +58,38 @@ def _sepWords(seq, WordSize):
 		word = seq[i:i+WordSize]
 		words.append(word)
 	return words
-def exonSeqs(genes,v=False):
-	'''returns a a list of tuples of [(exonname,seq),...]'''
-	exonsOut=[]
-	for gene in genes:
-		exons = gtf.transcriptNames(gene)
-		for exon in exons:
-			if v:print exon
-			c, s, e,strand = gtf.getTranscriptCoords(exon)
-			seq = fa.seq_coords(c, s, e,strand)
-			exonsOut.append((exon,seq))
-	return exons
+
 
 class glast:
-	def __init__(self,v=False ,output='results',ws=11):
+	def __init__(self,gmt,v=False ,output='results',ws=11):
 		'''
 		if no gib specified will chose one from annotations/ folder.
-		if no gib is present in that directory it will prompt to create one.	
+		if no gib is present in that directory it will prompt to create one.
 		'''
 		self.output = output
 		self.v = v
 		self.WS = ws
 		self.exonSeqOfGO={}
-			
+		self.gmt=gmt
+	def exonSeqs(self, genes,v=False):
+		'''returns a a list of tuples of [(exonname,seq),...]'''
+		exonsOut=[]
+		for gene in genes:
+			exons = gtf.transcriptNames(gene)
+			for exon in exons:
+				if v:
+					print exon, ', ',
+				c, s, e,strand = gtf.getTranscriptCoords(exon)
+				seq = fa.seq_coords(c, s, e,strand)
+				exonsOut.append((exon,seq))
+		return exonsOut
 	def glastSeq(self, 
 			  seq,
 			  exon,
-			  b = False, 
 			  ws = 11,
 			  loops = 100, 
 			  fname='GOS.tsv',
+			  b=False,
 			  header=None):
 		'''
 		given a sequence it returns glasting results via scanning a gob file
@@ -97,17 +99,19 @@ class glast:
 		virtual_seqs={}
 		qseq=seq
 		v=self.v
-		if b: num_lines = loops
 		exon_go={}
 		import go
-		GO = go.GO()
+		GO = go.GO(self.gmt)
+		GOlabel_ID={}
 		geneName = exon.split('-')[0]
 		GOlabels = GO.GOgeneNames(geneName)
 		for golabel in GOlabels:
-
 			if not golabel in self.exonSeqOfGO:
-				genes = GO.GenesWithGO(golabel)			
-				seqs = exonSeqs(genes,v=v)
+				genes = GO.GenesWithGO(golabel)	
+				GOlabel_ID[golabel]=GO.GOlabel_ID(golabel)
+				if v:print 'retriving sequences: ',
+				seqs = self.exonSeqs(genes,v=v)
+				print ''
 				self.exonSeqOfGO[golabel]=seqs
 			else: seqs = self.exonSeqOfGO[golabel]
 			for seq in seqs:
@@ -117,7 +121,7 @@ class glast:
 					os.system('clear')
 					print header
 					print golabel
-					print exon 
+					print exon,'(%(length)s)'%{'length':len(seq)} 
 				if not exon in exon_go: exon_go.update({exon:[]})
 				exon_go[exon].append(golabel)
 				scanWords = _sepWords(seq,ws)
@@ -148,9 +152,9 @@ class glast:
 				if not go in GOS: GOS.update({go:0})
 				GOS[go] += score
 		GOS_sorted = sorted(GOS.items(), key=operator.itemgetter(1))[::-1]
-		pprint.pprint(GOS_sorted)
+		if v:pprint.pprint(GOS_sorted)
 		
-		DtoTSV(GOS,fname,header=header)
+		DtoTSV(GOS,fname,header=header,extras=GOlabel_ID)
 		
 
 	def gradeMatches(self,matches,original,ws):
@@ -175,7 +179,7 @@ class glast:
 		return out
 
 
-	def glastExon(self, exon , b=False,dir=None,header=''):
+	def glastExon(self, exon ,dir=None,header=''):
 		'''
 		given a transcript name it returns the glasting results
 		'''
@@ -189,10 +193,10 @@ class glast:
 		fname = '/'.join([dir,exon+'.tsv'])
 		#fname = '%(dir)s/%(exon)s.tsv'%{dir:dir,exon:exon}
 		gene = exon.split('-')[0].upper()
-		GO = go.GO()
+		GO = go.GO(self.gmt)
 		guide = GO.GOgeneNames(gene)
 		if v:print header
-		return self.glastSeq(seq, exon, b = b,
+		return self.glastSeq(seq, exon, 
 					fname=fname,header=header,ws=self.WS)
 			
 	def glastGene(self, gene):
@@ -222,16 +226,7 @@ class glast:
 
 def main():
 	pass
-#	gene = sys.argv[-1]
-#	print 'glasting ' +gene
-#	g = glast()
-#	g.glastGene(gene.upper(),v=True)#[:3]
 	
 if __name__ == '__main__':
 	main()
-	#genGOB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gmt')
-	#genGIB('annotations/Mus_musculus_GSEA_GO_sets_all_symbols_September_2013.gob',b=False,checkpoint = 500) 
-	#seq ='''ACCATGGATCTCTCTGCCATCTACGAGGTGAGTACCTGTTAGACAGCATCCCGGGATCCCCGACGCACCAAACTTAGGCCC'''
-	#print g.glastSeq(seq)#,b=True,loops=100)
-	#print seq
 

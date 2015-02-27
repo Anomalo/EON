@@ -42,7 +42,7 @@ def readTSV(tsv,wraplabel=10):
 	head ='\n'.join(head)
 	vals , labels, colors = [],[],[]
 	for line in data:
-		label,val = line.split('\t')
+		label,val = line.split('\t')[:2]
 		val = float(val)
 		if val > 0:
 			c = color(label)
@@ -61,7 +61,7 @@ def pieplot(tsv,show=False,distortion=3,wraplabel=10):
 	head ='\n'.join(head)
 	vals , labels, colors = [],[],[]
 	for line in data:
-		label,val = line.split('\t')
+		label,val = line.split('\t')[:2]
 		val = float(val)
 		if val > 0:
 			c = color(label)

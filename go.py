@@ -61,8 +61,9 @@ def getGMT(purge = False, dir = 'annotations/',taxon='Mus musculus'):
 
 
 class GO:
-	def __init__(self):
-		self.readCONFIG()
+	def __init__(self,gmt):
+		self.gmt=gmt
+		self.GOfile=gmt
 		self.readGO()
 		self.mkGOgenes()
 		self.mkGOfreq()
@@ -71,24 +72,33 @@ class GO:
 		#GOgenes = {} #{gene:[goIDs]...}
 		#GOfreq = {} #{GOID: frequency...}
 		#genesGO = {'GOlabel':[genes]}
+		#labels_ID = {'GOlabel':'ID'}
 	def mkGenesGO(self):
 		'''makes a self.GenesGO dictionary of {GOname:[genes]}'''
 		genesGO={}
+		labels_ID={}
 		for line in self.GOTXT:
 			items = line.split()
+			if items==[]:continue
 			GOlabel = items.pop(0)
 			url =  items.pop(0)
+			ID = url.split('=')[-1]
+			labels_ID[GOlabel]=ID
 			genesGO[GOlabel]=[]
 			for gene in items:
 				gene = gene.upper()			
 				genesGO[GOlabel].append(gene)
 		self.genesGO=genesGO
-
+		self.labels_ID=labels_ID
+	def GOlabel_ID(self,label):
+		'''given a go label it returns the GO ID'''
+		return self.labels_ID[label]
 	def mkGOdef(self):
 		'''makes a self.GOdef dictionary of {GOID:GO long name}'''
 		GOdef = {}
 		for line in self.GOTXT:
 			items = line.split()
+			if items == []:continue
 			GOID = items[1].split('=')[-1]
 			GOdefinition = items[0]
 			GOdef.update({GOID:GOdefinition})
@@ -100,6 +110,7 @@ class GO:
 		geneNumber = len(self.GOgenes)
 		for line in self.GOTXT:
 			items = line.split()
+			if items==[]:continue
 			GOID = items[1].split('=')[-1]
 			amount = len(items)-2
 			frequency = amount/float(geneNumber)
@@ -113,6 +124,7 @@ class GO:
 		GOgenes = {}
 		for line in self.GOTXT:
 			items = line.split()
+			if items==[]:continue
 			GOlabel = items.pop(0)
 			GOID = items.pop(0).split('=')[-1]
 			for gene in items:
@@ -137,15 +149,6 @@ class GO:
 		f = open(self.GOfile,'r')
 		self.GOTXT = f.read().splitlines()
 		f.close()
-
-
-	def readCONFIG(self, fname = 'config.txt'):
-		''' makes a self.GOfile, a string of the .gmt file name from the config.txt file'''
-		f = open(fname, 'r')
-		exec(f.read())
-		f.close()
-		GO = 'annotations/' + GO
-		self.GOfile = GO
 	
 	def enrich(self, genes, key='GOID', P_cut_off = 0.05):
 		'''
@@ -157,6 +160,7 @@ class GO:
 		key --  what key to use for the dictionary to return, default 'GOID' otherwise use GOlabel
 		P_cut_off -- the P value to filter with.
 		'''
+		raise NameError('not functional')
 		from scipy import stats
 
 		

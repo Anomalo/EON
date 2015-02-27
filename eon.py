@@ -1,8 +1,8 @@
 #!/usr/bin/env python2.7
 import os
 from optparse import OptionParser
-
-
+import obo
+import glob
 def check_files(dir = 'annotations/',taxon='mus musculus'):
 	'''
 	checks, downloads and installs annotation files
@@ -73,9 +73,15 @@ def main():
 				action='store', type='string',
 				dest='bsubOptions',default='',
 				help='options to add to bsub in a string format')
+	parser.add_option('-l','--level',
+				action='store', type='int',
+				dest='level', default=3,
+				help='the go level to analyze with with 1 being the roots of the go tree')
+				
 	(options, args) = parser.parse_args()
 	v = options.v
 	ws=options.ws
+	level=options.level
 	bsub=options.bsub
 	bsuboptions=options.bsubOptions
 	output = options.output
@@ -95,9 +101,13 @@ def main():
 	
 	if genes!=[]:
 		if v:print 'will glast the exons of: ',', '.join(genes)
+		OBO = obo.OBO('annotations/go.obo')
+		gmt = glob.glob('annotations/*.gmt')[0]
+		gmt = OBO.filterGMT(gmt,level = level)
 		if not bsub: 
 			import blastgo
-			g = blastgo.glast(v=v,output=output,ws=ws)
+
+			g = blastgo.glast(gmt,v=v,output=output,ws=ws)
 		for gene in genes:
 			if bsub:
 				cmd = ' '.join(['bsub',
