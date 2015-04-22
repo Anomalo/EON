@@ -91,7 +91,7 @@ def main():
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
-		os.system('rm '+commandOptions+' annotations')
+		os.system('rm '+commandOptions+' annotations/*')
 	
 	if annotations != '':
 		check_files(taxon = annotations)
