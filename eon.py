@@ -1,9 +1,9 @@
 #!/usr/bin/env python2.7
 import os
 from optparse import OptionParser
-import obo
+from eon import obo
 import glob
-def check_files(dir = 'annotations/',taxon='mus musculus'):
+def check_files(taxon='mus musculus',dir = 'annotations/'):
 	'''
 	checks, downloads and installs annotation files
 	'''
@@ -12,18 +12,19 @@ def check_files(dir = 'annotations/',taxon='mus musculus'):
 	#check gmt
 	f = glob.glob(dir+'*.gmt')
 	if f == []: 
+		from eon import go
 		go.getGMT(taxon = taxon, dir = dir)
 		reload(go)
 	#check gtf
 	f = glob.glob(dir+'*.gtf')
 	if f == []: 
-		import GTF
+		from eon import gtf
 		gtf.getGTF(taxon = taxon, dir = dir)
 		reload(gtf)
 	#check obo
 	f = glob.glob(dir+'*.obo')
 	if f == []: 
-		import obo
+		from eon import obo
 		obo.getOBO(dir = dir)
 		reload(obo)
 	
@@ -85,14 +86,18 @@ def main():
 	bsub=options.bsub
 	bsuboptions=options.bsubOptions
 	output = options.output
-	if options.purge:
-		os.system('rm -rf annotations')
+	annotations = options.annotations
 	
-	if options.annotations != '':
-		check_files(options.annotations)
+	if options.purge:
+		commandOptions ='-rf'
+		if v:commandOptions+='v'
+		os.system('rm '+commandOptions+' annotations')
+	
+	if annotations != '':
+		check_files(taxon = annotations)
 	genes = []
 	if options.gene != '':
-		genes =genes +  options.gene.split()
+		genes = genes +  options.gene.split()
 	if options.input != '':
 		f = open(options.input,'r')
 		genesf = f.read()
@@ -105,7 +110,7 @@ def main():
 		gmt = glob.glob('annotations/*.gmt')[0]
 		gmt = OBO.filterGMT(gmt,level = level)
 		if not bsub: 
-			import blastgo
+			from eon import blastgo
 
 			g = blastgo.glast(gmt,v=v,output=output,ws=ws)
 		for gene in genes:
