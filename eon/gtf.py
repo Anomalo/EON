@@ -82,11 +82,12 @@ class gtf:
         self.names_transcripts = {}
         for line in self.bigGTFlistdict:
             if not line['transcript_name'] in self.bigGTFdict:
-                self.bigGTFdict.update({line['transcript_name'].upper():line})
+                transcript_name = line['transcript_name'].upper()+':'+line['exon_number']
+                self.bigGTFdict.update({transcript_name:line})
             name  = line['gene_name']
             if not name.upper() in self.names_transcripts:
-                self.names_transcripts.update({name.upper():[]})
-            self.names_transcripts[name.upper()].append(line['transcript_name'].upper())
+                self.names_transcripts.update({ line['transcript_name'].upper():[]})
+            self.names_transcripts[ line['transcript_name'].upper()].append(transcript_name)
         #orders and cleans self.names_transcripts
         for i in self.names_transcripts:
             self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
@@ -147,44 +148,42 @@ class gtf:
             genes.append(i['gene_name'])
         return sorted(set(genes))
 
-try:
-    def purge():
-        '''redoes thr GTF object'''
-        GTF = gtf()
-        pickle.dump(GTF,open('annotations/gtf.p','wb'))    
-    def getGene(chromosome, start, end):
-        '''
-        given chromosome, start, and end of a gene it returns the
-        gene attributes
-        '''
-        return GTF.getGene(chromosome, start, end)
-
-    def getExon(transcriptName):
-        '''
-        given a transcript name it returns the GFT data of that transcript in a 
-        dictionaty.
-        '''
-        return GTF.getExon(transcriptName)
-
-    def transcriptNames(gene):
-        '''
-        given a gene name it returns a list of transcript names (exon specific)
-        '''
-        return GTF.transcriptNames(gene)
-
-    def getTranscriptCoords(transcript):
-        '''
-        given a transcript name, it returns a tuple (chromosome, start, end)
-        '''
-        return GTF.getTranscriptCoords(transcript)
-
-    def getGeneList():
-        '''
-        returns a list of all the genes
-        '''
-        return GTF.getGeneList()
+GTF = gtf()
+def purge():
+    '''redoes thr GTF object'''
     GTF = gtf()
-except:print 'could not load'
+    pickle.dump(GTF,open('annotations/gtf.p','wb'))    
+def getGene(chromosome, start, end):
+    '''
+    given chromosome, start, and end of a gene it returns the
+    gene attributes
+    '''
+    return GTF.getGene(chromosome, start, end)
+
+def getExon(transcriptName):
+    '''
+    given a transcript name it returns the GFT data of that transcript in a 
+    dictionaty.
+    '''
+    return GTF.getExon(transcriptName)
+
+def transcriptNames(gene):
+    '''
+    given a gene name it returns a list of transcript names (exon specific)
+    '''
+    return GTF.transcriptNames(gene)
+
+def getTranscriptCoords(transcript):
+    '''
+    given a transcript name, it returns a tuple (chromosome, start, end)
+    '''
+    return GTF.getTranscriptCoords(transcript)
+
+def getGeneList():
+    '''
+    returns a list of all the genes
+    '''
+    return GTF.getGeneList()
     
 
 if __name__ == '__main__':

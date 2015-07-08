@@ -74,11 +74,14 @@ class glast:
 	def exonSeqs(self, genes,v=False):
 		'''returns a a list of tuples of [(exonname,seq),...]'''
 		exonsOut=[]
-		for gene in genes:
+		for i,gene in enumerate(genes,start=1):
 			exons = gtf.transcriptNames(gene)
-			for exon in exons:
+			genePercent = round(100*(float(i)/len(genes)),2)
+			for j, exon in enumerate(exons,start=1):
+				exonPercent = round(100*(float(j)/len(exons)),2)
 				if v:
-					print exon, ', ',
+					print genePercent,exonPercent,exon,' '*20
+					sys.stdout.write("\033[F")
 				c, s, e,strand = gtf.getTranscriptCoords(exon)
 				seq = fa.seq_coords(c, s, e,strand)
 				exonsOut.append((exon,seq))
@@ -205,6 +208,7 @@ class glast:
 		results of all transcripts in a dictionary format
 		'''
 		v=self.v
+		if v:print 'glasting', gene
 		output=self.output
 		print 'importing gtf'
 		import gtf
@@ -212,7 +216,7 @@ class glast:
 		results = dict.fromkeys(exons)
 		dir = output+'/'+gene
 		if not os.path.exists(dir): os.makedirs(dir)		
-		if v:print exons
+		#if v:print exons
 		for exon in exons:
 			if v:print exon
 			

@@ -135,6 +135,8 @@ class GO:
 		self.GOgenes = GOgenes
 	def GOgeneNames(self, gene):
 		'''returns a list of go names for that gene'''
+		if not gene in self.GOgenes:
+			return None
 		goids = self.GOgenes[gene.upper()]
 		gonames = []
 		for id in goids:
