@@ -78,7 +78,14 @@ def main():
 				action='store', type='int',
 				dest='level', default=3,
 				help='the go level to analyze with with 1 being the roots of the go tree')
-				
+	parser.add_option('-L','--levelALL',
+				action='store_true',
+				dest = 'L',default=False,
+				help='Analize all go levels')
+	parser.add_option('-d','--distortion',
+				action='store',type='int',
+				dest='distortion',default=3,
+				help='integer by which to raise the blasting scores when plotting pie charts')
 	(options, args) = parser.parse_args()
 	v = options.v
 	ws=options.ws
@@ -87,6 +94,8 @@ def main():
 	bsuboptions=options.bsubOptions
 	output = options.output
 	annotations = options.annotations
+	distortion = options.distortion
+	L = options.L
 	
 	if options.purge:
 		commandOptions ='-rf'
@@ -108,11 +117,12 @@ def main():
 		if v:print 'will glast the exons of: ',', '.join(genes)
 		OBO = obo.OBO('annotations/go.obo')
 		gmt = glob.glob('annotations/*.gmt')[0]
-		gmt = OBO.filterGMT(gmt,level = level)
+		if not L:
+			gmt = OBO.filterGMT(gmt,level = level)
 		if not bsub: 
 			from eon import blastgo
 
-			g = blastgo.glast(gmt,v=v,output=output,ws=ws)
+			g = blastgo.glast(gmt,v=v,output=output,ws=ws,distortion=distortion)
 		for gene in genes:
 			if bsub:
 				cmd = ' '.join(['bsub',
@@ -121,6 +131,7 @@ def main():
 						'-G',gene,
 						'-ws',str(ws),
 						'-o',output,
+						'-d',distortion,
 						'"'
 						])
 				print cmd

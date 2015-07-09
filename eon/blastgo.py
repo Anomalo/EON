@@ -61,7 +61,7 @@ def _sepWords(seq, WordSize):
 
 
 class glast:
-	def __init__(self,gmt,v=False ,output='results',ws=11):
+	def __init__(self,gmt,v=False ,output='results',ws=11,distortion = 3):
 		'''
 		if no gib specified will chose one from annotations/ folder.
 		if no gib is present in that directory it will prompt to create one.
@@ -71,16 +71,17 @@ class glast:
 		self.WS = ws
 		self.exonSeqOfGO={}
 		self.gmt=gmt
+		self.distortion=distortion
 	def exonSeqs(self, genes,v=False):
 		'''returns a a list of tuples of [(exonname,seq),...]'''
 		exonsOut=[]
 		for i,gene in enumerate(genes,start=1):
-			exons = gtf.transcriptNames(gene)
+			exons = gtf.transcriptNames(gene+'-001')
 			genePercent = round(100*(float(i)/len(genes)),2)
 			for j, exon in enumerate(exons,start=1):
 				exonPercent = round(100*(float(j)/len(exons)),2)
 				if v:
-					print genePercent,exonPercent,exon,' '*20
+					print genePercent,'%',exonPercent,'%',exon,' '*20
 					sys.stdout.write("\033[F")
 				c, s, e,strand = gtf.getTranscriptCoords(exon)
 				seq = fa.seq_coords(c, s, e,strand)
@@ -112,9 +113,7 @@ class glast:
 			if not golabel in self.exonSeqOfGO:
 				genes = GO.GenesWithGO(golabel)	
 				GOlabel_ID[golabel]=GO.GOlabel_ID(golabel)
-				if v:print 'retriving sequences: ',
 				seqs = self.exonSeqs(genes,v=v)
-				print ''
 				self.exonSeqOfGO[golabel]=seqs
 			else: seqs = self.exonSeqOfGO[golabel]
 			for seq in seqs:
@@ -208,6 +207,7 @@ class glast:
 		results of all transcripts in a dictionary format
 		'''
 		v=self.v
+		if not '-' in gene:gene+='-001'
 		if v:print 'glasting', gene
 		output=self.output
 		print 'importing gtf'
@@ -223,7 +223,7 @@ class glast:
 			results[exon] = self.glastExon(exon,dir=dir,
 							 )
 			
-		plot.plotDIR(dir)
+		plot.plotDIR(dir,distortion = self.distortion)
 		return results
 	
 

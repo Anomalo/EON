@@ -84,13 +84,13 @@ class gtf:
             if not line['transcript_name'] in self.bigGTFdict:
                 transcript_name = line['transcript_name'].upper()+':'+line['exon_number']
                 self.bigGTFdict.update({transcript_name:line})
-            name  = line['gene_name']
-            if not name.upper() in self.names_transcripts:
-                self.names_transcripts.update({ line['transcript_name'].upper():[]})
-            self.names_transcripts[ line['transcript_name'].upper()].append(transcript_name)
+            name  = line['transcript_name'].upper()
+            if not name in self.names_transcripts:
+                self.names_transcripts.update({ name:[]})
+            self.names_transcripts[name].append(transcript_name)
         #orders and cleans self.names_transcripts
-        for i in self.names_transcripts:
-            self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
+        #for i in self.names_transcripts:
+        #    self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
     def readCONFIG(self, fname = 'config.txt'):
         '''
         return GTF file acording to config file, a string of the .gmt file name from 
@@ -125,7 +125,7 @@ class gtf:
         given a gene name it returns a list of transcript names (exon specific)
         '''
 	if gene.upper() in self.names_transcripts:
-
+		
 	        return (self.names_transcripts[gene.upper()])
 	else: return []
 
