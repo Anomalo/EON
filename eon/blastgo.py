@@ -109,7 +109,7 @@ class glast:
 		GOlabel_ID={}
 		geneName = exon.split('-')[0]
 		GOlabels = GO.GOgeneNames(geneName)
-		for golabel in GOlabels:
+		for golabelIndex, golabel in enumerate(GOlabels):
 			if not golabel in self.exonSeqOfGO:
 				genes = GO.GenesWithGO(golabel)	
 				GOlabel_ID[golabel]=GO.GOlabel_ID(golabel)
@@ -121,8 +121,9 @@ class glast:
 				if exon == exonQuery: continue
 				if v:
 					os.system('clear')
-					print header
-					print golabel
+					print 'Glasting', header,
+					print 'for', golabel,
+					print round(100*(golabelIndex/float(len(GOlabels))),1),'%'
 					print exon,'(%(length)s)'%{'length':len(seq)} 
 				if not exon in exon_go: exon_go.update({exon:[]})
 				exon_go[exon].append(golabel)
@@ -201,14 +202,14 @@ class glast:
 		return self.glastSeq(seq, exon, 
 					fname=fname,header=header,ws=self.WS)
 			
-	def glastGene(self, gene):
+	def glastGene(self, gene,exonsToBlast=[]):
 		'''
 		given a gene short name, it returns the glasting
 		results of all transcripts in a dictionary format
 		'''
 		v=self.v
 		if not '-' in gene:gene+='-001'
-		if v:print 'glasting', gene
+		if v:print 'glasting', gene, 'exons:',','.join(exonsToBlast)
 		output=self.output
 		print 'importing gtf'
 		import gtf
@@ -218,6 +219,10 @@ class glast:
 		if not os.path.exists(dir): os.makedirs(dir)		
 		#if v:print exons
 		for exon in exons:
+			if len(exonsToBlast) !=0:
+				if not exon.split(':')[-1] in exonsToBlast:
+					if v:print 'skipping',exon
+					continue
 			if v:print exon
 			
 			results[exon] = self.glastExon(exon,dir=dir,

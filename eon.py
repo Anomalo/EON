@@ -41,6 +41,10 @@ def main():
 				action='store',type='string',
 				dest='gene',default='',
 				help='analyze de exons of given genes')
+	parser.add_option('-e','--exons',
+				action='store',type='string',
+				dest='exons',default='',
+				help='exons to blast, default is all, just add exon number separated by commas, or just two exons separated with Hyphen, 3-7 is the same as 3,4,5,6,7 ')
 	parser.add_option('-A','--annotation',
 				action='store', type='string',
 				dest='annotations',default='',
@@ -96,7 +100,19 @@ def main():
 	annotations = options.annotations
 	distortion = options.distortion
 	L = options.L
-	
+	exons = options.exons
+
+	#parsing exons
+	if '-' in exons: 
+		exons = exons.split('-')
+		if len(exons) != 2:
+			raise  ValueError('Could not parse exons')
+		first, last = exons
+		exons = range(int(first),int(last)+1)
+	else:
+		exons = exons.split(',')
+	if exons == ['']:exons = []
+	#
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
@@ -139,7 +155,7 @@ def main():
 						
 						
 			else:
-				g.glastGene(gene)
+				g.glastGene(gene,exonsToBlast=exons)
 				
 
 if __name__ == '__main__': 
