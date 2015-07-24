@@ -109,7 +109,9 @@ class glast:
 		GOlabel_ID={}
 		geneName = exon.split('-')[0]
 		GOlabels = GO.GOgeneNames(geneName)
+		goSizes={}
 		for golabelIndex, golabel in enumerate(GOlabels):
+			goSizes[golabel]=0
 			if not golabel in self.exonSeqOfGO:
 				genes = GO.GenesWithGO(golabel)	
 				GOlabel_ID[golabel]=GO.GOlabel_ID(golabel)
@@ -118,6 +120,7 @@ class glast:
 			else: seqs = self.exonSeqOfGO[golabel]
 			for seq in seqs:
 				exon,seq = seq
+				goSizes[golabel]+=len(seq)
 				if exon == exonQuery: continue
 				if v:
 					os.system('clear')
@@ -140,7 +143,6 @@ class glast:
 				loops-=1
 				if loops == 0 :break
 
-
 		grades = self.gradeMatchesD(virtual_seqs,qseq,ws)
 		
 		filter = [k for k, v in grades.items() if v>0.05]
@@ -154,6 +156,9 @@ class glast:
 			for go in goIDS:
 				if not go in GOS: GOS.update({go:0})
 				GOS[go] += score
+			#normalizes by exon size
+			for go,score in GOS.iteritems():
+				GOS[go]=score/len(qseq)
 		GOS_sorted = sorted(GOS.items(), key=operator.itemgetter(1))[::-1]
 		if v:pprint.pprint(GOS_sorted)
 		

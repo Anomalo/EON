@@ -1,0 +1,26 @@
+TRA2B-001:007
+16:22248436-22248495 (-)
+head_development(4)	1.52890503891e-15
+regulation_of_mRNA_metabolic_process(6)	0
+central_nervous_system_development(5)	1.52890503891e-15
+mRNA_processing(7)	8.12106596138e-21
+pattern_specification_process(4)	1.52890503891e-15
+RNA_splicing(7)	8.12106596138e-21
+forebrain_regionalization(5)	0
+cerebral_cortex_development(4)	8.38106083149e-44
+regulation_of_mRNA_processing(6)	0
+alternative_mRNA_splicing_via_spliceosome(9)	0
+pallium_development(4)	8.38106083149e-44
+RNA_splicing_via_transesterification_reactions(8)&mRNA_splicing_via_spliceosome(8)&RNA_splicing_via_transesterification_reactions_with_bulged_adenosine_as_nucleophile(9)	0
+mRNA_binding(7)	1.45647944751e-38
+RNA_processing(6)	8.12106596138e-21
+brain_development(4)	1.52890503891e-15
+telencephalon_regionalization(5)	0
+forebrain_development(4)	1.52890503891e-15
+regionalization(5)	1.52890503891e-15
+telencephalon_development(4)	8.38106083149e-44
+mRNA_metabolic_process(6)	8.12106596138e-21
+regulation_of_mRNA_splicing_via_spliceosome(7)	0
+regulation_of_RNA_splicing(6)	8.12106596138e-21
+positive_regulation_of_RNA_splicing(6)	5.85248459414e-51
+regulation_of_alternative_mRNA_splicing_via_spliceosome(8)	0

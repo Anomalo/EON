@@ -1,0 +1,29 @@
+TRA2B-001:001
+16:22265741-22266005 (-)
+regionalization(5)	1.56135691882e-33	GO:0003002
+positive_regulation_of_mRNA_processing(6)	0	GO:0050685
+head_development(4)	2.50858092611e-28	GO:0060322
+regulation_of_mRNA_metabolic_process(6)	0.0	GO:1903311
+central_nervous_system_development(5)	2.50858092632e-28	GO:0007417
+mRNA_processing(7)	3.3921820466e-14	GO:0006397
+pattern_specification_process(4)	1.56135691882e-33	GO:0007389
+RNA_splicing(7)	3.3921820466e-14	GO:0008380
+positive_regulation_of_mRNA_splicing_via_spliceosome(7)	0	GO:0048026
+forebrain_regionalization(5)	0	GO:0021871
+cerebral_cortex_development(4)	1.26191948497e-103	GO:0021987
+regulation_of_mRNA_processing(6)	0.0	GO:0050684
+pallium_development(4)	1.26191948497e-103	GO:0021543
+RNA_splicing_via_transesterification_reactions(8)&mRNA_splicing_via_spliceosome(8)&RNA_splicing_via_transesterification_reactions_with_bulged_adenosine_as_nucleophile(9)	1.51177122406e-16	GO:0000375
+mRNA_binding(7)	6.03762238997e-89	GO:0003729
+RNA_processing(6)	3.3921820466e-14	GO:0006396
+brain_development(4)	2.50858092611e-28	GO:0007420
+regulation_of_mRNA_splicing_via_spliceosome(7)	0.0	GO:0048024
+forebrain_development(4)	4.72995348737e-65	GO:0030900
+alternative_mRNA_splicing_via_spliceosome(9)	0	GO:0000380
+telencephalon_development(4)	1.55552771987e-74	GO:0021537
+mRNA_metabolic_process(6)	3.3921820466e-14	GO:0016071
+telencephalon_regionalization(5)	0	GO:0021978
+regulation_of_RNA_splicing(6)	1.08946598244e-91	GO:0043484
+positive_regulation_of_mRNA_metabolic_process(6)	0	GO:1903313
+positive_regulation_of_RNA_splicing(6)	2.22171366206e-285	GO:0033120
+regulation_of_alternative_mRNA_splicing_via_spliceosome(8)	0	GO:0000381

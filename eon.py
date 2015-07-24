@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+##!/usr/bin/env python2.7
 import os
 from optparse import OptionParser
 from eon import obo
@@ -84,7 +84,7 @@ def main():
 				help='the go level to analyze with with 1 being the roots of the go tree')
 	parser.add_option('-L','--levelALL',
 				action='store_true',
-				dest = 'L',default=False,
+				dest = 'L',default=True,
 				help='Analize all go levels')
 	parser.add_option('-d','--distortion',
 				action='store',type='int',
@@ -156,6 +156,7 @@ def main():
 						
 			else:
 				g.glastGene(gene,exonsToBlast=exons)
+		if v:print 'DONE'
 				
 
 if __name__ == '__main__': 

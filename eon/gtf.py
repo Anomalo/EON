@@ -82,7 +82,9 @@ class gtf:
         self.names_transcripts = {}
         for line in self.bigGTFlistdict:
             if not line['transcript_name'] in self.bigGTFdict:
-                transcript_name = line['transcript_name'].upper()+':'+line['exon_number']
+		exon_number = line['exon_number']
+		exon_number = '0'*(3-len(exon_number))+exon_number
+                transcript_name = line['transcript_name'].upper()+':'+exon_number
                 self.bigGTFdict.update({transcript_name:line})
             name  = line['transcript_name'].upper()
             if not name in self.names_transcripts:

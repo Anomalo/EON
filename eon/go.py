@@ -136,6 +136,7 @@ class GO:
 	def GOgeneNames(self, gene):
 		'''returns a list of go names for that gene'''
 		if not gene in self.GOgenes:
+			print gene,'not found in gmt'
 			return None
 		goids = self.GOgenes[gene.upper()]
 		gonames = []

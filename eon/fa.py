@@ -42,7 +42,8 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 		convert = {	'A':'T',
 				'C':'G',
 				'G':'C',
-				'T':'A'}
+				'T':'A',
+				'N':'N'}
 		seq = ''
 		for i in seqReversed:
 			seq+=convert[i]
