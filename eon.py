@@ -40,7 +40,7 @@ def main():
 	parser.add_option('-G','--gene',
 				action='store',type='string',
 				dest='gene',default='',
-				help='analyze de exons of given genes')
+				help='analyze the given gene isoform (DMD-001)')
 	parser.add_option('-e','--exons',
 				action='store',type='string',
 				dest='exons',default='',
