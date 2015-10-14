@@ -1,0 +1,2 @@
+gene,"","groupID","featureID","exonBaseMean","dispersion","stat","pvalue","padj","genomicData.seqnames","genomicData.start","genomicData.end","genomicData.width","genomicData.strand","countData.1","countData.2","countData.3","countData.4","countData.5","countData.6","transcripts"
+"Prkd3:E014","ENSMUSG00000024070:E014","ENSMUSG00000024070","E014",509.370491641082,0.00109464343430666,211.409332525429,6.76696883579177e-48,1.26810965892087e-42,"17",78969619,78971359,1741,"-",630,814,989,417,340,186,ENSMUST00000124229
