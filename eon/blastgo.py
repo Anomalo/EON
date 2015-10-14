@@ -1,7 +1,7 @@
 from pprint import pprint
 from threading import Thread
 modules  = [	'os',
-		'plot',
+		#'plot',
 		'operator',
 		'sys',
 		'cPickle as pickle',
@@ -94,13 +94,15 @@ class glast:
 			  loops = 100, 
 			  fname='GOS.tsv',
 			  b=False,
-			  header=None):
+			  header=None,
+			  save_annot=True):
 		'''
 		given a sequence it returns glasting results via scanning a gob file
 		'''
 		exonQuery=exon
-		wordsList=_sepWords(seq,ws)
-		virtual_seqs={}
+		wordsList=_sepWords(seq,ws) #wordlist is a separationof thewords in the sequence
+		virtual_seqs={} # virtual sequence to add a blasting ofeach word in it
+		virtual_seqs_annotation={}
 		qseq=seq
 		v=self.v
 		exon_go={}
@@ -111,14 +113,14 @@ class glast:
 		GOlabels = GO.GOgeneNames(geneName)
 		goSizes={}
 		for golabelIndex, golabel in enumerate(GOlabels):
-			goSizes[golabel]=0
+			goSizes [golabel]=0
 			if not golabel in self.exonSeqOfGO:
 				genes = GO.GenesWithGO(golabel)	
 				GOlabel_ID[golabel]=GO.GOlabel_ID(golabel)
 				seqs = self.exonSeqs(genes,v=v)
 				self.exonSeqOfGO[golabel]=seqs
 			else: seqs = self.exonSeqOfGO[golabel]
-			for seq in seqs:
+			for seq,gene  in zip(seqs,genes):
 				exon,seq = seq
 				goSizes[golabel]+=len(seq)
 				if exon == exonQuery: continue
@@ -133,12 +135,17 @@ class glast:
 				scanWords = _sepWords(seq,ws)
 				n=0
 				for word in scanWords:
-					if word in wordsList:
-						if not exon in virtual_seqs:
+				 	if word in wordsList:
+				 		if not exon in virtual_seqs:
 							virtual_exon = [-1]*len(scanWords)
 							virtual_seqs.update({exon:virtual_exon})
+							virtual_seqs_annotation.update({exon:virtual_exon})
 						virtual_seqs[exon][n]=wordsList.index(word)
-					n+=1				
+						print 
+						print 'this causes errors',repr(virtual_seqs_annotation[exon])
+						if not gene in virtual_seqs_annotation[exon][n]:
+							virtual_seqs_annotation[exon][n]=[]
+						virtual_seqs_annotation[exon][n].append(gene)
 			if b:
 				loops-=1
 				if loops == 0 :break
@@ -163,7 +170,35 @@ class glast:
 		if v:pprint.pprint(GOS_sorted)
 		
 		DtoTSV(GOS,fname,header=header,extras=GOlabel_ID)
-		
+		if save_annot:
+			'''
+			vitrual_seqs_annotation=
+				{
+				exon a:
+					[[geneA,geneB],
+					[geneA, geneB],
+					...]
+				exon b:
+				}
+			exon a	1	genes
+			exon a	2	genes
+				...
+			exon b	1	genes
+				...
+			'''
+			txt = []
+			for exon, sequence in  virtual_seqs_annotationiteritems():
+				for i, genes in enumerate(sequence):
+					line =exon+'\t'+str(i)+'\t'+','.join(genes)
+					txt.append(line)
+			txt ='\n'.join(txt)
+			f = open(exon +'_annot.txt','w')
+			f.write(txt)
+			f.close()
+			print txt
+			print 10/0  
+			
+
 
 	def gradeMatches(self,matches,original,ws):
 		'''	
@@ -185,11 +220,9 @@ class glast:
 		for exon in matchD:
 			out[exon]=self.gradeMatches(matchD[exon],original,ws)
 		return out
-
-
 	def glastExon(self, exon ,dir=None,header=''):
 		'''
-		given a transcript name it returns the glasting results
+		given a exon it returns the glasting results
 		'''
 		import gtf
 		v=self.v
@@ -222,18 +255,15 @@ class glast:
 		results = dict.fromkeys(exons)
 		dir = output+'/'+gene
 		if not os.path.exists(dir): os.makedirs(dir)		
-		#if v:print exons
 		for exon in exons:
 			if len(exonsToBlast) !=0:
-				if not exon.split(':')[-1] in exonsToBlast:
+				if not str(int(exon.split(':')[-1])) in exonsToBlast:
 					if v:print 'skipping',exon
 					continue
-			if v:print exon
+			if v:print exon			
+			results[exon] = self.glastExon(exon,dir=dir)
 			
-			results[exon] = self.glastExon(exon,dir=dir,
-							 )
-			
-		plot.plotDIR(dir,distortion = self.distortion)
+		#plot.plotDIR(dir,distortion = self.distortion)
 		return results
 	
 
