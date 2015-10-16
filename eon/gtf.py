@@ -122,6 +122,7 @@ class gtf:
         dictionaty.
         '''
         return self.bigGTFdict[transcriptName.upper()]
+
     def transcriptNames(self, gene):
         '''
         given a gene name it returns a list of transcript names (exon specific)
@@ -131,9 +132,33 @@ class gtf:
 	        return (self.names_transcripts[gene.upper()])
 	else: return []
 
+    def getGeneCoords(self, gene,avoid_start=0,avoid_end=0):
+        '''
+        given a gene name it tries to return a list of all of its exons coordinates
+        '''
+	exons = []
+        indices = set()
+        for i in self.names_transcripts:
+		if gene.upper() == i.split('-')[0]:#
+			exons += self.names_transcripts[i]
+                        for exon in exons:
+                            chr,start,end,strand = self.getTranscriptCoords(exon)
+                            indices.update(set(range(start,end)))
+        indices = indices-set(range(avoid_start,avoid_end+1))
+        indices = sorted(list(indices))
+        coords = []
+        start = indices[0]
+        for n,i in enumerate(indices):
+            if n == 0:continue
+            if i != indices[n-1]+1:
+                 coords.append((chr,start,i,strand))
+                 start = i
+        coords.append((chr,start,i+1,strand))
+        return coords
+
     def getTranscriptCoords(self,transcript):
         '''
-        Given a transcript name, it returns a tuple (chromosome, start, end)
+        Given a transcript name, it returns a tuple (chromosome, start, end, strand)
         '''
         data = self.getExon(transcript)
         return (data['seqname'].replace('chr',''),
@@ -161,6 +186,12 @@ def getGene(chromosome, start, end):
     gene attributes
     '''
     return GTF.getGene(chromosome, start, end)
+
+def getGeneCoords( gene,avoid_start=0,avoid_end=0):
+    '''
+    given a gene name it tries to return a list of all of its exons coordinates
+    '''
+    return GTF.getGeneCoords(gene,avoid_start,avoid_end)
 
 def getExon(transcriptName):
     '''
