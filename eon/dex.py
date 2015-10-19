@@ -5,14 +5,14 @@ from optparse import OptionParser
 import csv
 import glob
 import fa
-#import gtf
+import gtf
 class dex:
-	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mut_musculus',version='GRCm38'):
+	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38'):
 		self.dexseq=dexseq
 		self.prosite = 'annotations/prosite.dat'
 		self.verbose=verbose
 		self.sep=sep
-		fa.set_taxon(taxon,versio)
+		fa.set_taxon(taxon,version)
 		if not os.path.isfile(self.prosite):
 			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
 	
@@ -23,6 +23,7 @@ class dex:
 		verbose = self.verbose
 		sep = self.sep
 
+
 		tempFasta ,ids= self.dexSeqToFasta()
 		if verbose:print tempFasta
 		prositeCMD = 'perl ps_scan/ps_scan.pl --pfscan ps_scan/pfscan -d %(prosite)s %(tempFasta)s > %(tempFasta)s.prosite '
@@ -31,7 +32,7 @@ class dex:
 		if verbose:print 'ps_scan done, reading results'
 		
 		self.prositeToDexseq()
-		
+
 		#this part just cleans the temp files
 		os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: print 'completed'
@@ -50,12 +51,20 @@ class dex:
 			if chunk=='':continue
 			lines = chunk.split('\n')
 			description = lines.pop(0)
+			count = 0
+			for line in lines:
+				if line =='':continue
+				if len( line.split())>3:
+					start,space,end = line.split()[:3]
+					count += int(end)-int(start)
 			count = len(lines)
 			name , ground, length,motif = description.split(':')
 			motif = motif.split()[1]
 			if not name in proD: proD[name]={}
-			if not motif in proD[name]:proD[name][motif]={}
-			proD[name][motif][ground]=map(int,(count,length))
+			if not motif in proD[name]:
+				proD[name][motif]={}
+			proD[name][motif][ground]=map(int,(0,length))
+			proD[name][motif][ground][0]+=int(count)
 		f.close()
 		
 		for exon,motifs in proD.iteritems():
@@ -148,6 +157,7 @@ class dex:
 				print 'retrving sequence for ',id, 'foreground'
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
+			print length
 			seqs = sliceSeq(seq)
 			for seq in seqs:			
 				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
