@@ -5,7 +5,7 @@ import csv
 import glob
 from eon import fa
 from eon import dex
-def check_files(taxon='mus musculus',dir = 'annotations/'):
+def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 	'''
 	checks, downloads and installs annotation files
 	'''
@@ -18,14 +18,12 @@ def check_files(taxon='mus musculus',dir = 'annotations/'):
 		from eon import gtf
 		gtf.getGTF(taxon = taxon, dir = dir)
 		reload(gtf)
+	#
+	fa.set_taxon(taxon=taxon,version=version)	
 	
 		
 def main():
 	description='''
-	this program tool will glast(go blasting) exons of genes given. outputting how 
-	a score of how common the motifs found on the exon where present in genes within 
-	go annotation categories. The assumption is that motifs important for a specific 
-	gene ontology category would be present in other genes within that GO category.
 	'''.replace('\n','').replace('\t','')
 	parser = OptionParser(description=description)
 	parser.add_option('-f','--file',
@@ -37,6 +35,11 @@ def main():
 				action='store', type='string',
 				dest='annotations',default='',
 				help='downloads and generates anotation files of defined taxon -A "mus musculus"')
+
+	parser.add_option('-t','--taxon_version',
+				action='store', type='string',
+				dest='annotation_version',default='GRCm38',
+				help='defines what genome version to download, default is "GRCm38"')
 
 	parser.add_option('-p','--purge',
 				action='store_true',
@@ -53,30 +56,26 @@ def main():
 				dest='output',default='results',
 				help='directory where to save the results')
 	'''
-
-	parser.add_option('-P','--prosite',
-				action='store', type='string',
-				dest='prosite',default='annotations/prosite.dat',
-				help='prosite.dat file')
 	
 	(options, args) = parser.parse_args()
 	v = options.v
 	#output = options.output
 	annotations = options.annotations
-	prosite = options.prosite
+	annotaion_version = options.annotation_version
 	dexseq = options.dexFile
 	if v: print 'Analyzing',dexseq
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
 		os.system('rm '+commandOptions+' annotations/*')
+		check_files(taxon = annotations,version =annotation_version )
 	
 	if annotations != '':
-		check_files(taxon = annotations)
+		check_files(taxon = annotations,version =annotation_version )
 	
 
 
-	dexMotif = dex.dex(dexseq,prosite,v)
+	dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
 	dexMotif.addMotifs()
 
 if __name__ == '__main__': 

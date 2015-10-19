@@ -1,17 +1,24 @@
 import os
 import os.path
+from glob import glob
 
-def chr_url(chromosome, taxon="mus_musculus"):
-	url = "".join(["ftp://ftp.ensembl.org/pub/release-78/fasta/", 
-			taxon,
-			"/dna/Mus_musculus.GRCm38.dna.chromosome.",
-			chromosome,
-			".fa.gz"])
+_taxon="mus_musculus"
+_version='GRCm38'
+
+def set_taxon(taxon="mus_musculus",version='GRCm38'):
+	global _taxon
+	global _version
+	_taxon = taxon
+	_version = version
+
+def chr_url(chromosome):
+	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(_taxon)s/dna/%(_taxon)s.%(_version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
 	return url
-def get_fa(chromosome, taxon="mus_musculus", folder="annotations/genome"):
+
+def get_fa(chromosome, folder="annotations/genome"):
 	if not os.path.exists(folder):
 		os.makedirs(folder)
-	url = chr_url(chromosome, taxon)
+	url = chr_url(chromosome, _taxon)
 	cmd = " ".join(["wget",
 			url,
 			"-P",
@@ -26,16 +33,23 @@ def get_fa(chromosome, taxon="mus_musculus", folder="annotations/genome"):
 			folder+"/"+filename])
 	os.system(cmd)
 	'''
+
 def chr_filename(chromosome):
-	return "annotations/genome/Mus_musculus.GRCm38.dna.chromosome."+chromosome+".fa"
-	
+	'''
+	returns the filename for the chromosome genome
+	'''
+	files = glob("annotations/genome/*.dna.chromosome.%(chromosome)s.fa"%locals())
+	if files == []: return ''
+	else : return files[0]
+
 def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	'''
 	returns the genomic sequence
 	'''
 	filename = chr_filename(chromosome)
-	if not os.path.isfile(filename):
+	if filename == '':
 		get_fa(chromosome)	
+	filename = chr_filename(chromosome)
 	f = open(filename, "r")
 	seq = f.read().replace("\n","")
 	start,end = int(start),int(end)
@@ -60,6 +74,6 @@ def seqs_coords(coordinates):
 	end, strand),...]
 	'''
 	seqs = []
-	for chromosome, star, end, strand in coordinates:
+	for chromosome, start, end, strand in coordinates:
 		seqs.append(seq_coords(chromosome, start,end, strand))
 	return seqs
