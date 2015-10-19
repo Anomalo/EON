@@ -1,18 +1,21 @@
 ##!/usr/bin/env python2.7
 import os
+import os.path
 from optparse import OptionParser
 import csv
 import glob
 import fa
 #import gtf
 class dex:
-	def __init__(self,dexseq,prosite,verbose=False,sep=','):
+	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mut_musculus',version='GRCm38'):
 		self.dexseq=dexseq
-		self.prosite=prosite
+		self.prosite = 'annotations/prosite.dat'
 		self.verbose=verbose
 		self.sep=sep
-
-		
+		fa.set_taxon(taxon,versio)
+		if not os.path.isfile(self.prosite):
+			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
+	
 
 	def addMotifs(self):
 		dexseq = self.dexseq
