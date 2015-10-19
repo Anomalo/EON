@@ -30,11 +30,15 @@ def chr_filename(chromosome):
 	return "annotations/genome/Mus_musculus.GRCm38.dna.chromosome."+chromosome+".fa"
 	
 def seq_coords(chromosome, start=0, end=-1, direction='+'):
+	'''
+	returns the genomic sequence
+	'''
 	filename = chr_filename(chromosome)
 	if not os.path.isfile(filename):
 		get_fa(chromosome)	
 	f = open(filename, "r")
 	seq = f.read().replace("\n","")
+	start,end = int(start),int(end)
 	if direction == '+':
 		return seq[start:end]
 	else:
@@ -43,9 +47,19 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 				'C':'G',
 				'G':'C',
 				'T':'A',
-				'N':'N'}
+				}
 		seq = ''
 		for i in seqReversed:
 			seq+=convert[i]
 		return seq
 
+
+def seqs_coords(coordinates):
+	'''
+	return a list of sequences based on a list of coords tuples [(chromosome, start,
+	end, strand),...]
+	'''
+	seqs = []
+	for chromosome, star, end, strand in coordinates:
+		seqs.append(seq_coords(chromosome, start,end, strand))
+	return seqs
