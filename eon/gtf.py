@@ -25,7 +25,7 @@ def getGTF(taxon='Mus musculus',release=78, dir='annotations/'):
 class gtf:
     def _splitLine(self,line,header):
         '''
-        Given a ta delaminated string, and a header list, it returns a 
+        Given a tab delaminated string, and a header list, it returns a 
         dictionary with headers as keys
         '''
         line = line.replace('"','')
@@ -80,6 +80,7 @@ class gtf:
         self.chrDict = chrDict
         self.bigGTFdict={}
         self.names_transcripts = {}
+        self.gene_IDS={}
         for line in self.bigGTFlistdict:
             if not line['transcript_name'] in self.bigGTFdict:
 		exon_number = line['exon_number']
@@ -90,6 +91,11 @@ class gtf:
             if not name in self.names_transcripts:
                 self.names_transcripts.update({ name:[]})
             self.names_transcripts[name].append(transcript_name)
+            ID = line['gene_id']
+            if not ID in self.gene_IDS:
+		self.gene_IDS[ID]=[]
+            self.gene_IDS[ID].append(transcript_name)
+
         #orders and cleans self.names_transcripts
         #for i in self.names_transcripts:
         #    self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
@@ -132,18 +138,23 @@ class gtf:
 	        return (self.names_transcripts[gene.upper()])
 	else: return []
 
-    def getGeneCoords(self, gene,avoid_start=0,avoid_end=0):
+    def getGeneCoords(self,ID ,avoid_start=0,avoid_end=0):
         '''
         given a gene name it tries to return a list of all of its exons coordinates
         '''
-	exons = []
         indices = set()
+        for exon in self.transcriptNamesFromID(ID):
+            chr,start,end,strand = self.getTranscriptCoords(exon)
+            indices.update(set(range(start,end)))
+
+      	'''	
         for i in self.names_transcripts:
 		if gene.upper() == i.split('-')[0]:#
 			exons += self.names_transcripts[i]
                         for exon in exons:
                             chr,start,end,strand = self.getTranscriptCoords(exon)
                             indices.update(set(range(start,end)))
+        '''
         indices = indices-set(range(avoid_start,avoid_end+1))
         indices = sorted(list(indices))
         coords = []
@@ -174,6 +185,12 @@ class gtf:
         for i in self.bigGFTlistdict:
             genes.append(i['gene_name'])
         return sorted(set(genes))
+
+    def transcriptNamesFromID(self,ID):
+	'''
+	returns a list of all transcripts from the ENSMUSG ID
+	'''
+	return self.gene_IDS[ID]
 
 GTF = gtf()
 def purge():
