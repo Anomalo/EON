@@ -4,7 +4,7 @@ from optparse import OptionParser
 import csv
 import glob
 import fa
-
+import gtf
 class dex:
 	def __init__(self,dexseq,prosite,verbose=False,sep=','):
 		self.dexseq=dexseq
@@ -21,6 +21,7 @@ class dex:
 		sep = self.sep
 	
 		tempFasta ,ids= self.dexSeqToFasta()
+		return None
 		if verbose:print tempFasta
 		prositeCMD = 'perl ps_scan/ps_scan.pl --pfscan ps_scan/pfscan -d %(prosite)s %(tempFasta)s > %(tempFasta)s.prosite '
 		if verbose:print prositeCMD % locals()
@@ -85,7 +86,7 @@ class dex:
 			strand  = rowD['genomicData.strand']
 			start   = rowD['genomicData.start']
 			end     = rowD['genomicData.end']
-	
+
 			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s' % locals()
 			if ID in proD:line.append(proD[ID])
 			else: line.append('-')
@@ -123,17 +124,38 @@ class dex:
 			strand  = rowD['genomicData.strand']
 			start   = rowD['genomicData.start']
 			end     = rowD['genomicData.end']
+			id      = rowD['groupID']
 			#gene    = rowD['gene']
-			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s' % locals()
+			start = int(start)
+			end = int(end)
 			if verbose:
-				print 'retrving sequence for ',ID
-			seq     = fa.seq_coords(seqname,start,end,strand)
+				print 'retrving sequence for ',id, 'foreground'
+			seq = fa.seq_coords(seqname,start,end,strand)
+			length=len(seq)
 			choppedSeq = ''
 			for i in range(0,len(seq),linelength):
 				choppedSeq+=seq[i:i+linelength]+'\n'
-			
+			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
 			newFasta= '>%(ID)s\n%(choppedSeq)s' % locals()
 			fasta.append(newFasta)
+
+
+			if verbose:
+				print 'retrving sequence for ',id,'background'
+			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
+									avoid_start=start,
+									avoid_end  =end)))
+			
+			length=len(seq)
+			choppedSeq = ''
+			for i in range(0,len(seq),linelength):
+				choppedSeq+=seq[i:i+linelength]+'\n'
+			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s:background:%(length)s' % locals()
+			newFasta= '>%(ID)s\n%(choppedSeq)s' % locals()
+			fasta.append(newFasta)
+
+
+
 			ids.append(ID)
 		f.close()
 		fasta = ''.join(fasta)
