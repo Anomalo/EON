@@ -24,12 +24,12 @@ def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 		
 def main():
 	description='''
+	Takes as input a dexseq output file and enriches the loci with motifs
+	overrepresented (compared with the rest of the gene)
+	dexMotif [options] dexseq1 dexseq2 ...
+
 	'''.replace('\n','').replace('\t','')
 	parser = OptionParser(description=description)
-	parser.add_option('-f','--file',
-				action='store',type='string',
-				dest='dexFile',default='',
-				help='dexseq output file to analyze')
 
 	parser.add_option('-A','--annotation',
 				action='store', type='string',
@@ -48,22 +48,14 @@ def main():
 	
 	parser.add_option('-v','--verbose',
 				action='store_true',
-				dest ='v', default=False,
+				dest ='v', default=True,
 				help='shows you what am I thinking')
-	'''
-	parser.add_option('-o','--output',
-				action='store', type='string',
-				dest='output',default='results',
-				help='directory where to save the results')
-	'''
 	
 	(options, args) = parser.parse_args()
 	v = options.v
 	#output = options.output
 	annotations = options.annotations
-	annotaion_version = options.annotation_version
-	dexseq = options.dexFile
-	if v: print 'Analyzing',dexseq
+	annotation_version = options.annotation_version
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
@@ -74,9 +66,11 @@ def main():
 		check_files(taxon = annotations,version =annotation_version )
 	
 
-
-	dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
-	dexMotif.addMotifs()
+	for dexseqArg in args:
+		for dexseq in glob.glob(dexseqArg):
+			if v: print 'Analyzing',dexseq
+			dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
+			dexMotif.addMotifs()
 
 if __name__ == '__main__': 
 	#check_files()
