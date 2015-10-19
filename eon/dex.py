@@ -4,7 +4,7 @@ from optparse import OptionParser
 import csv
 import glob
 import fa
-import gtf
+#import gtf
 class dex:
 	def __init__(self,dexseq,prosite,verbose=False,sep=','):
 		self.dexseq=dexseq
@@ -19,9 +19,8 @@ class dex:
 		prosite = self.prosite
 		verbose = self.verbose
 		sep = self.sep
-	
+
 		tempFasta ,ids= self.dexSeqToFasta()
-		return None
 		if verbose:print tempFasta
 		prositeCMD = 'perl ps_scan/ps_scan.pl --pfscan ps_scan/pfscan -d %(prosite)s %(tempFasta)s > %(tempFasta)s.prosite '
 		if verbose:print prositeCMD % locals()
@@ -49,12 +48,27 @@ class dex:
 			lines = chunk.split('\n')
 			description = lines.pop(0)
 			count = len(lines)
-			name = description.split(' :')[0]
-			motif = description.split()[3]
-			if not name in proD: proD[name]=''
-			proD[name]+='%(motif)s/%(count)s '%locals()
+			name , ground, length,motif = description.split(':')
+			motif = motif.split()[1]
+			if not name in proD: proD[name]={}
+			if not motif in proD[name]:proD[name][motif]={}
+			proD[name][motif][ground]=map(int,(count,length))
 		f.close()
-		print proD
+		
+		for exon,motifs in proD.iteritems():
+			out = []
+			for motif,counts in motifs.iteritems():
+				if 'foreground' in counts:
+					f_counts, f_length=counts['foreground']
+					if 'background' in counts:	
+						b_counts, b_length=counts['background']
+						points = (float(f_counts)/float(f_length))/(float(b_counts)/float(b_length))
+						points = '%(points).2f'%locals()
+					else:
+						points = 'N%(f_counts)s'%locals()
+					out.append('%(motif)s:%(points)s'%locals())
+			out = ' ; '.join(out)
+			proD[exon]=out
 		return proD
 		
 	
@@ -77,7 +91,7 @@ class dex:
 			if n==1:
 				header = row
 				n+=1
-				newCSV.append(','.join(header+['prosite_motifs']))
+				newCSV.append(','.join(['prosite_motifs']+header))
 				continue
 			rowD = dict(zip(header,row))	
 			line = row
@@ -87,11 +101,10 @@ class dex:
 			start   = rowD['genomicData.start']
 			end     = rowD['genomicData.end']
 
-			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s' % locals()
-			if ID in proD:line.append(proD[ID])
-			else: line.append('-')
+			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
+			if ID in proD:line = [proD[ID]]+line
+			else: line = ['-']+line
 			newCSV.append(','.join(line))
-	
 		f.close()
 		newCSV='\n'.join(newCSV)
 		f = open(dexseqOut,'w')
@@ -132,12 +145,11 @@ class dex:
 				print 'retrving sequence for ',id, 'foreground'
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
-			choppedSeq = ''
-			for i in range(0,len(seq),linelength):
-				choppedSeq+=seq[i:i+linelength]+'\n'
-			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
-			newFasta= '>%(ID)s\n%(choppedSeq)s' % locals()
-			fasta.append(newFasta)
+			seqs = sliceSeq(seq)
+			for seq in seqs:			
+				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
+				newFasta= '>%(ID)s\n%(seq)s' % locals()
+				fasta.append(newFasta)
 
 
 			if verbose:
@@ -145,14 +157,13 @@ class dex:
 			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
 									avoid_start=start,
 									avoid_end  =end)))
-			
 			length=len(seq)
-			choppedSeq = ''
-			for i in range(0,len(seq),linelength):
-				choppedSeq+=seq[i:i+linelength]+'\n'
-			ID = '%(seqname)s:%(start)s-%(end)s_%(strand)s:background:%(length)s' % locals()
-			newFasta= '>%(ID)s\n%(choppedSeq)s' % locals()
-			fasta.append(newFasta)
+			seqs = sliceSeq(seq)
+			for seq in seqs:			
+				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:background:%(length)s' % locals()
+				newFasta= '>%(ID)s\n%(seq)s' % locals()
+				fasta.append(newFasta)
+
 
 
 
@@ -164,7 +175,19 @@ class dex:
 		f.write(fasta)
 		f.close()
 		return fastaFname,ids
-	
+def sliceSeq(seq,max_length=40000,linelength=80):
+	'''
+	returns a list of sequences, each sequence no longer than mac_length
+	and with each line no longer than linelength
+	'''
+	seqs = []
+	for i in range(0,len(seq),max_length):
+		subseq=seq[i:i+max_length]
+		choppedSeq=''
+		for j in range(0,len(subseq),linelength):
+			choppedSeq+=subseq[j:j+linelength]+'\n'
+		seqs.append(choppedSeq)
+	return seqs
 if __name__ == '__main__': 
 	#check_files()
 	main()
