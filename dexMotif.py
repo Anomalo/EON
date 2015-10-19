@@ -34,7 +34,7 @@ def main():
 	parser.add_option('-A','--annotation',
 				action='store', type='string',
 				dest='annotations',default='',
-				help='downloads and generates anotation files of defined taxon -A "mus musculus"')
+				help='downloads and generates anotation files of defined taxon -A "mus_musculus"')
 
 	parser.add_option('-t','--taxon_version',
 				action='store', type='string',
@@ -50,12 +50,26 @@ def main():
 				action='store_true',
 				dest ='v', default=True,
 				help='shows you what am I thinking')
+
+	parser.add_option('-B','--Bsub',
+				action='store_true',
+				dest ='bsub', default=False,
+				help='run each dexseq in bsub')
+	
+	parser.add_option('-b','--Bsub_options',
+				action='store', type='string'
+				dest ='bsub_options', default='',
+				help='options for bsubs')
+
 	
 	(options, args) = parser.parse_args()
 	v = options.v
 	#output = options.output
 	annotations = options.annotations
 	annotation_version = options.annotation_version
+	bsub = options.bsub
+	bsub_options = options.bsub_options
+
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
@@ -69,8 +83,13 @@ def main():
 	for dexseqArg in args:
 		for dexseq in glob.glob(dexseqArg):
 			if v: print 'Analyzing',dexseq
-			dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
-			dexMotif.addMotifs()
+			if bsub:
+				cmd = 'bsub %(bsub_options)s"python dexMotif.py %(dexseq)s"'%locals()
+				if v:print cmd
+				os.system(cmd)
+			else:
+				dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
+				dexMotif.addMotifs()
 
 if __name__ == '__main__': 
 	#check_files()
