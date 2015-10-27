@@ -18,6 +18,7 @@ Options:
   -b BSUB_OPTIONS, --Bsub_options=BSUB_OPTIONS
                         options for bsubs
   -V, --version         prints version
+  -T, --Tempfiles       does not erase temprary files
 
 
 

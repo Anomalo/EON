@@ -4,7 +4,7 @@ from optparse import OptionParser
 import csv
 import glob
 from eon import fa
-from eon import dex
+#from eon import dex #this is imported at a later stage as it takes a long time to load
 import sys
 def err(*vars):
 	sys.stderr.write(' '.join(map(str,vars))+'\n')
@@ -70,6 +70,11 @@ def main():
 				action='store_true',
 				dest ='version', default=False,
 				help='prints version')
+
+	parser.add_option('-T','--Tempfiles',
+				action='store_true',
+				dest ='tempfiles', default=False,
+				help='does not erase temprary files')
 	
 
 	(options, args) = parser.parse_args()
@@ -101,7 +106,11 @@ def main():
 				if v:err( cmd)
 				os.system(cmd)
 			else:
-				dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
+				from eon import dex
+				dexMotif = dex.dex(dexseq,v,
+							taxon=annotations, 
+							version=annotation_version , 
+							temp = options.tempfiles)
 				dexMotif.addMotifs()
 
 if __name__ == '__main__': 
