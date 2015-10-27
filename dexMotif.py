@@ -55,17 +55,6 @@ def main():
 				dest ='v', default=True,
 				help='shows you what am I thinking')
 
-	parser.add_option('-B','--Bsub',
-				action='store_true',
-				dest ='bsub', default=False,
-				help='run each dexseq in bsub')
-	
-	parser.add_option('-b','--Bsub_options',
-				action='store', type='string',
-				dest ='bsub_options', default='',
-				help='options for bsubs')
-
-	
 	parser.add_option('-V','--version',
 				action='store_true',
 				dest ='version', default=False,
@@ -82,8 +71,6 @@ def main():
 	#output = options.output
 	annotations = options.annotations
 	annotation_version = options.annotation_version
-	bsub = options.bsub
-	bsub_options = options.bsub_options
 	
 	if options.version:
 		err('this is version',0)
@@ -98,20 +85,23 @@ def main():
 		check_files(taxon = annotations,version =annotation_version )
 	
 
+	if len(args) == 0:
+		parser.print_help()
+		return None
+
+	if len(args) > 1:
+		err('more than one argument given')
+		return None
+	
 	for dexseqArg in args:
 		for dexseq in glob.glob(dexseqArg):
 			if v: err('Analyzing',dexseq)
-			if bsub:
-				cmd = 'bsub %(bsub_options)s"python dexMotif.py %(dexseq)s"'%locals()
-				if v:err( cmd)
-				os.system(cmd)
-			else:
-				from eon import dex
-				dexMotif = dex.dex(dexseq,v,
-							taxon=annotations, 
-							version=annotation_version , 
-							temp = options.tempfiles)
-				dexMotif.addMotifs()
+			from eon import dex
+			dexMotif = dex.dex(dexseq,v,
+						taxon=annotations, 
+						version=annotation_version , 
+						temp = options.tempfiles)
+			dexMotif.addMotifs()
 
 if __name__ == '__main__': 
 	#check_files()
