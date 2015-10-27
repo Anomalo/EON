@@ -94,19 +94,19 @@ class dex:
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep
-		dexseqOut = '%(dexseq)s.withMotifs.csv'%locals()
+		#dexseqOut = '%(dexseq)s.withMotifs.csv'%locals()
 
 		f = open(dexseq)
 		csvfile = csv.reader(f,delimiter=sep)
 		n=1
-		newCSV= []
+		#newCSV= []
 		prosite = '%(dexseq)s.tmp.fasta.prosite'%locals()
 		proD = self.readPrositeOut()
 		for row in csvfile:
 			if n==1:
 				header = row
 				n+=1
-				newCSV.append(','.join(['prosite_motifs']+header))
+				print ','.join(['prosite_motifs']+header)
 				continue
 			rowD = dict(zip(header,row))	
 			line = row
@@ -119,12 +119,12 @@ class dex:
 			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
 			if ID in proD:line = [proD[ID]]+line
 			else: line = ['-']+line
-			newCSV.append(','.join(line))
+			print ','.join(line)
 		f.close()
-		newCSV='\n'.join(newCSV)
-		f = open(dexseqOut,'w')
-		f.write(newCSV)
-		f.close()
+		#newCSV='\n'.join(newCSV)
+		#f = open(dexseqOut,'w')
+		#f.write(newCSV)
+		#f.close()
 		
 			
 	def dexSeqToFasta(self,linelength=80):

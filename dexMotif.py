@@ -30,7 +30,7 @@ def main():
 	description='''
 	Takes as input a dexseq output file and enriches the loci with motifs
 	overrepresented (compared with the rest of the gene)
-	dexMotif [options] <dexseq>
+	dexMotif [options] <dexseq> > <dexseqOutput>
 
 	'''.replace('\n','').replace('\t','')
 	parser = OptionParser(description=description)
