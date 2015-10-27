@@ -6,6 +6,9 @@ import csv
 import glob
 import fa
 import gtf
+import sys
+def err(*args):
+	sys.stderr.write(' '.join(map(str,args))+'\n')
 class dex:
 	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38'):
 		self.dexseq=dexseq
@@ -25,17 +28,17 @@ class dex:
 
 
 		tempFasta ,ids= self.dexSeqToFasta()
-		if verbose:print tempFasta
+		if verbose: err(tempFasta)
 		prositeCMD = 'perl ps_scan/ps_scan.pl --pfscan ps_scan/pfscan -d %(prosite)s %(tempFasta)s > %(tempFasta)s.prosite '
-		if verbose:print prositeCMD % locals()
+		if verbose:err(prositeCMD % locals())
 		os.system(prositeCMD % locals())
-		if verbose:print 'ps_scan done, reading results'
+		if verbose: err('ps_scan done, reading results')
 		
 		self.prositeToDexseq()
 
 		#this part just cleans the temp files
 		os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
-		if verbose: print 'completed'
+		if verbose: err( 'completed')
 	
 	def readPrositeOut(self):
 		'''
@@ -154,10 +157,9 @@ class dex:
 			start = int(start)
 			end = int(end)
 			if verbose:
-				print 'retrving sequence for ',id, 'foreground'
+				err('retrving sequence for ',id, 'foreground')
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
-			print length
 			seqs = sliceSeq(seq)
 			for seq in seqs:			
 				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
@@ -166,7 +168,7 @@ class dex:
 
 
 			if verbose:
-				print 'retrving sequence for ',id,'background'
+				err('retrving sequence for ',id,'background')
 			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
 									avoid_start=start,
 									avoid_end  =end)))

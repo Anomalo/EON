@@ -5,6 +5,10 @@ import csv
 import glob
 from eon import fa
 from eon import dex
+import sys
+def err(*vars):
+	sys.stderr.write(' '.join(map(str,vars))+'\n')
+
 def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 	'''
 	checks, downloads and installs annotation files
@@ -26,7 +30,7 @@ def main():
 	description='''
 	Takes as input a dexseq output file and enriches the loci with motifs
 	overrepresented (compared with the rest of the gene)
-	dexMotif [options] dexseq1 dexseq2 ...
+	dexMotif [options] <dexseq>
 
 	'''.replace('\n','').replace('\t','')
 	parser = OptionParser(description=description)
@@ -57,11 +61,17 @@ def main():
 				help='run each dexseq in bsub')
 	
 	parser.add_option('-b','--Bsub_options',
-				action='store', type='string'
+				action='store', type='string',
 				dest ='bsub_options', default='',
 				help='options for bsubs')
 
 	
+	parser.add_option('-V','--version',
+				action='store_true',
+				dest ='version', default=False,
+				help='prints version')
+	
+
 	(options, args) = parser.parse_args()
 	v = options.v
 	#output = options.output
@@ -69,7 +79,10 @@ def main():
 	annotation_version = options.annotation_version
 	bsub = options.bsub
 	bsub_options = options.bsub_options
-
+	
+	if options.version:
+		err('this is version',0)
+	
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
@@ -82,10 +95,10 @@ def main():
 
 	for dexseqArg in args:
 		for dexseq in glob.glob(dexseqArg):
-			if v: print 'Analyzing',dexseq
+			if v: err('Analyzing',dexseq)
 			if bsub:
 				cmd = 'bsub %(bsub_options)s"python dexMotif.py %(dexseq)s"'%locals()
-				if v:print cmd
+				if v:err( cmd)
 				os.system(cmd)
 			else:
 				dexMotif = dex.dex(dexseq,v,taxon=annotations, version=annotation_version)
