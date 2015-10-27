@@ -1,8 +1,0 @@
-DMD-001:79
-X:85202471-85206141 (+)
-cell_substrate_junction(3)	1.91687251843	GO:0030055
-structural_constituent_of_muscle(3)	0.0331784944493	GO:0008307
-contractile_fiber_part(3)	0.766274900909	GO:0044449
-maintenance_of_location(3)	0.877437318861	GO:0051235
-structural_constituent_of_cytoskeleton(3)	0.224030447442	GO:0005200
-synaptic_membrane(3)	0.970415335086	GO:0097060
