@@ -1,8 +1,9 @@
+from glob import glob
 import urllib
 import cPickle as pickle
 import os
 
-def getGTF(taxon='Mus musculus',release=78, dir='annotations/'):
+def getGTF(taxon='Mus musculus',release=77, dir='annotations/'):
 	taxon = taxon.lower().replace(' ','_')
 	url = 'ftp://ftp.ensembl.org/pub/release-'+str(release)+'/gtf/'+taxon+'/'
 	response = urllib.urlopen(url).read()
@@ -50,7 +51,10 @@ class gtf:
         '''
                 
         if f == None:
-            f = self.readCONFIG()
+            f = glob('annotations/*gtf')
+            if len(f) != 1:
+                raise ValueError('there is either no gtf file in annotations or there is more than one')
+            f = f[0]
         f = open(f,'r')
         self.header = ['seqname',
                        'source',
@@ -82,6 +86,7 @@ class gtf:
         self.names_transcripts = {}
         self.gene_IDS={}
         for line in self.bigGTFlistdict:
+            if not 'transcript_name' in line: continue		
             if not line['transcript_name'] in self.bigGTFdict:
 		exon_number = line['exon_number']
 		exon_number = '0'*(3-len(exon_number))+exon_number
