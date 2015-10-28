@@ -14,9 +14,6 @@ Options:
   -p, --purge           delete all anotation files (usefull for changing the
                         taxon of interest)
   -v, --verbose         shows you what am I thinking
-  -B, --Bsub            run each dexseq in bsub
-  -b BSUB_OPTIONS, --Bsub_options=BSUB_OPTIONS
-                        options for bsubs
   -V, --version         prints version
   -T, --Tempfiles       does not erase temprary files
 
