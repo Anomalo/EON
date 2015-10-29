@@ -145,21 +145,15 @@ class gtf:
 
     def getGeneCoords(self,ID ,avoid_start=0,avoid_end=0):
         '''
-        given a gene name it tries to return a list of all of its exons coordinates
+        given a gene name it tries to return a list of all of its exons 
+        coordinates (without the start and end coordinates)
         '''
         indices = set()
-        for exon in self.transcriptNamesFromID(ID):
-            chr,start,end,strand = self.getTranscriptCoords(exon)
-            indices.update(set(range(start,end)))
+	for everyID in ID.split('+'):
+            for exon in self.transcriptNamesFromID(everyID):
+                chr,start,end,strand = self.getTranscriptCoords(exon)
+                indices.update(set(range(start,end)))
 
-      	'''	
-        for i in self.names_transcripts:
-		if gene.upper() == i.split('-')[0]:#
-			exons += self.names_transcripts[i]
-                        for exon in exons:
-                            chr,start,end,strand = self.getTranscriptCoords(exon)
-                            indices.update(set(range(start,end)))
-        '''
         indices = indices-set(range(avoid_start,avoid_end+1))
         indices = sorted(list(indices))
         coords = []
