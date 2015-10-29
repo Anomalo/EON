@@ -35,7 +35,12 @@ def main():
 	'''.replace('\n','').replace('\t','')
 	parser = OptionParser(description=description)
 
-	parser.add_option('-A','--annotation',
+	parser.add_option('-a','--annotations',
+				action='store', type='string',
+				dest='annotationsDir',default='annotations',
+				help='directory with annotations: the gtf file')
+
+	parser.add_option('-T','--taxon',
 				action='store', type='string',
 				dest='annotations',default='',
 				help='downloads and generates anotation files of defined taxon -A "mus_musculus"')

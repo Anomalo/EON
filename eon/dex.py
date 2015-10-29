@@ -12,7 +12,7 @@ def err(*args):
 class dex:
 	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38',temp=False):
 		self.dexseq=dexseq
-		self.prosite = 'annotations/prosite.dat'
+		self.prosite = 'ps_scan/prosite.dat'
 		self.verbose=verbose
 		self.sep=sep
 		self.temps = temp
