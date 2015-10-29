@@ -162,7 +162,7 @@ class dex:
 			start = int(start)
 			end = int(end)
 			if verbose:
-				done = 100*(n/numlines)
+				done = 100*((2*n)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
@@ -174,7 +174,7 @@ class dex:
 
 
 			if verbose:
-				done = 100*((n+1)/numlines)
+				done = 100*((2*n+1)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s background'%locals())
 			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
 									avoid_start=start,
