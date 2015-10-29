@@ -151,8 +151,9 @@ class gtf:
         indices = set()
 	for everyID in ID.split('+'):
             for exon in self.transcriptNamesFromID(everyID):
-                chr,start,end,strand = self.getTranscriptCoords(exon)
-                indices.update(set(range(start,end)))
+                if not exon==None:
+                    chr,start,end,strand = self.getTranscriptCoords(exon)
+                    indices.update(set(range(start,end)))
 
         indices = indices-set(range(avoid_start,avoid_end+1))
         indices = sorted(list(indices))
@@ -189,8 +190,10 @@ class gtf:
 	'''
 	returns a list of all transcripts from the ENSMUSG ID
 	'''
-	return self.gene_IDS[ID]
-
+	if ID in self.gene_IDS:
+		return self.gene_IDS[ID]
+	else : return None
+	
 GTF = gtf()
 def purge():
     '''redoes thr GTF object'''
