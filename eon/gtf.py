@@ -192,7 +192,7 @@ class gtf:
 	'''
 	if ID in self.gene_IDS:
 		return self.gene_IDS[ID]
-	else : return None
+	else : return []
 	
 GTF = gtf()
 def purge():
