@@ -137,6 +137,10 @@ class dex:
 		verbose = self.verbose
 		sep = self.sep
 	
+		if verbose:
+			f = open(dexseq)
+			numlines= float(len(f.readlines()))*2
+			f.close()
 		f = open(dexseq)
 		csvfile = csv.reader(f,delimiter=sep)
 		n=0
@@ -158,7 +162,8 @@ class dex:
 			start = int(start)
 			end = int(end)
 			if verbose:
-				err('retrving sequence for ',id, 'foreground')
+				done = 100*(n/numlines)
+				err('%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
 			seqs = sliceSeq(seq)
@@ -169,7 +174,8 @@ class dex:
 
 
 			if verbose:
-				err('retrving sequence for ',id,'background')
+				done = 100*((n+1)/numlines)
+				err('%(done).2f%%\tretrving sequence for %(id)s background'%locals())
 			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
 									avoid_start=start,
 									avoid_end  =end)))
