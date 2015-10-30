@@ -66,14 +66,14 @@ class dex:
 				if len( line.split())>3:
 					start,space,end = line.split()[:3]
 					count += int(end)-int(start)
-			count = len(lines)
+			#count = len(lines)
 			name , ground, length,motif = description.split(':')
 			motif = motif.split()[1]
 			if not name in proD: proD[name]={}
 			if not motif in proD[name]:
 				proD[name][motif]={}
 			proD[name][motif][ground]=map(int,(0,length))
-			proD[name][motif][ground][0]+=int(count)
+			proD[name][motif][ground][0]+=round(count,2)
 		f.close()
 		
 		for exon,motifs in proD.iteritems():
