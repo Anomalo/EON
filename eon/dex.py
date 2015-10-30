@@ -10,15 +10,20 @@ import sys
 def err(*args):
 	sys.stderr.write(' '.join(map(str,args))+'\n')
 class dex:
-	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38',temp=False):
+	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38',temp=False,annotationDir='annotations'):
 		self.dexseq=dexseq
 		self.prosite = 'ps_scan/prosite.dat'
 		self.verbose=verbose
 		self.sep=sep
 		self.temps = temp
-		fa.set_taxon(taxon,version)
-		if not os.path.isfile(self.prosite):
-			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
+		self.annotationDir = annotationDir
+		gtf_file = glob.glob(annotationDir+'/*.gtf')
+		if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
+		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
+		self.gtf_file = gtf_file[0]
+		fa.set_taxon(taxon,version,annotationDir = annotationDir)
+#		if not os.path.isfile(self.prosite):
+#			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
 	
 
 	def addMotifs(self):
@@ -136,7 +141,7 @@ class dex:
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep
-	
+		GTF = gtf.gtf(self.gtf_file)
 		if verbose:
 			f = open(dexseq)
 			numlines= float(len(f.readlines()))*2
@@ -162,7 +167,7 @@ class dex:
 			start = int(start)
 			end = int(end)
 			if verbose:
-				done = 100*((2*n)/numlines)
+				done = 100*((2*n-1)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
 			seq = fa.seq_coords(seqname,start,end,strand)
 			length=len(seq)
@@ -174,9 +179,9 @@ class dex:
 
 
 			if verbose:
-				done = 100*((2*n+1)/numlines)
+				done = 100*((2*n)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s background'%locals())
-			seq = ''.join(fa.seqs_coords(gtf.getGeneCoords(id,
+			seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
 									avoid_start=start,
 									avoid_end  =end)))
 			length=len(seq)

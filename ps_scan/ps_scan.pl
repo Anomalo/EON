@@ -966,7 +966,7 @@ my $postProcessDispatchTable = {
     # gives a "level" (in fact only shown in LevelTag; displayed level will
     # still be empty like for any pattern) to pattern matches:
     # if the effector detects the match at level 0, the match is given level 0,
-    # LevelTag "(0)", else LevelTag "(-1)"
+    # LevelTag "(0)"[4~, else LevelTag "(-1)"
     # NOTE: effector hits are calculated here!
     'EVALUATED_BY' => sub {
         my ( $target, $effector, $mp_ac ) = @_;

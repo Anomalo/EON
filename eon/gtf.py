@@ -193,8 +193,8 @@ class gtf:
 	if ID in self.gene_IDS:
 		return self.gene_IDS[ID]
 	else : return []
-	
-GTF = gtf()
+
+#GTF = gtf()
 def purge():
     '''redoes thr GTF object'''
     GTF = gtf()
@@ -236,7 +236,6 @@ def getGeneList():
     returns a list of all the genes
     '''
     return GTF.getGeneList()
-    
 
 if __name__ == '__main__':
     while True:

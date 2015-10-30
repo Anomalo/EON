@@ -65,7 +65,7 @@ def main():
 				dest ='version', default=False,
 				help='prints version')
 
-	parser.add_option('-T','--Tempfiles',
+	parser.add_option('-m','--Tempfiles',
 				action='store_true',
 				dest ='tempfiles', default=False,
 				help='does not erase temprary files')
@@ -76,18 +76,18 @@ def main():
 	#output = options.output
 	annotations = options.annotations
 	annotation_version = options.annotation_version
-	
+	annotationDir = options.annotationsDir
 	if options.version:
 		err('this is version',0)
 	
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
-		os.system('rm '+commandOptions+' annotations/*')
-		check_files(taxon = annotations,version =annotation_version )
+		os.system('rm '+commandOptions+annotationDir+'/*')
+		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
 	
 	if annotations != '':
-		check_files(taxon = annotations,version =annotation_version )
+		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
 	
 
 	if len(args) == 0:
@@ -105,7 +105,8 @@ def main():
 			dexMotif = dex.dex(dexseq,v,
 						taxon=annotations, 
 						version=annotation_version , 
-						temp = options.tempfiles)
+						temp = options.tempfiles,
+						annotationDir = annotationDir)
 			dexMotif.addMotifs()
 
 if __name__ == '__main__': 

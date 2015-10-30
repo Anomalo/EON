@@ -4,12 +4,14 @@ from glob import glob
 
 _taxon="mus_musculus"
 _version='GRCm38'
-
-def set_taxon(taxon="mus_musculus",version='GRCm38'):
+_annotationDir='annotations'
+def set_taxon(taxon="mus_musculus",version='GRCm38',annotationDir='annotations'):
 	global _taxon
 	global _version
+	global _annotationDir
 	_taxon = taxon
 	_version = version
+	_annotationDir = annotationDir
 
 def chr_url(chromosome):
 	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(_taxon)s/dna/%(_taxon)s.%(_version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
@@ -38,7 +40,8 @@ def chr_filename(chromosome):
 	'''
 	returns the filename for the chromosome genome
 	'''
-	files = glob("annotations/genome/*.dna.chromosome.%(chromosome)s.fa"%locals())
+	annotationDir =  _annotationDir
+	files = glob("%(annotationDir)s/genome/*.dna.chromosome.%(chromosome)s.fa"%locals())
 	if files == []: return ''
 	else : return files[0]
 
@@ -48,7 +51,7 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	'''
 	filename = chr_filename(chromosome)
 	if filename == '':
-		get_fa(chromosome)	
+		get_fa(chromosome,folder = annotationDir+'/genome')	
 	filename = chr_filename(chromosome)
 	f = open(filename, "r")
 	seq = f.read().replace("\n","")
