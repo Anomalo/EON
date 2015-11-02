@@ -18,6 +18,8 @@ class dex:
 		self.sep=sep
 		self.temps = temp
 		self.annotationDir = annotationDir
+		self.ps_scan = os.path.realpath(__file__)+'/ps_scan/ps_scan.pl'
+		print self.ps_scan
 		gtf_file = glob.glob(annotationDir+'/*.gtf')
 		if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
 		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
