@@ -10,7 +10,8 @@ import sys
 def err(*args):
 	sys.stderr.write(' '.join(map(str,args))+'\n')
 class dex:
-	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus',version='GRCm38',temp=False,annotationDir='annotations'):
+	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus'
+			,version='GRCm38',temp=False,annotationDir='annotations'):
 		self.dexseq=dexseq
 		self.prosite = 'ps_scan/prosite.dat'
 		self.verbose=verbose
@@ -43,7 +44,7 @@ class dex:
 		self.prositeToDexseq()
 
 		#this part just cleans the temp files
-		if self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
+		if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: err( 'completed')
 	
 	def readPrositeOut(self):
