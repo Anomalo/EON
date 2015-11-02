@@ -37,7 +37,7 @@ class dex:
 
 		tempFasta ,ids= self.dexSeqToFasta()
 		if verbose: err(tempFasta)
-		prositeCMD = 'perl %(ps_scan)sps_scan --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
+		prositeCMD = 'perl %(ps_scan)sps_scan.pl --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
 		if verbose:err(prositeCMD % locals())
 		os.system(prositeCMD % locals())
 		if verbose: err('ps_scan done, reading results')
