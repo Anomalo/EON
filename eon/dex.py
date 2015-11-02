@@ -34,7 +34,6 @@ class dex:
 		verbose = self.verbose
 		sep = self.sep
 		ps_scan = self.ps_scan
-
 		tempFasta ,ids= self.dexSeqToFasta()
 		if verbose: err(tempFasta)
 		prositeCMD = 'perl %(ps_scan)sps_scan.pl --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
