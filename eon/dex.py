@@ -18,8 +18,7 @@ class dex:
 		self.sep=sep
 		self.temps = temp
 		self.annotationDir = annotationDir
-		self.ps_scan = os.path.realpath(__file__)+'/ps_scan/ps_scan.pl'
-		print self.ps_scan
+		self.ps_scan = os.path.realpath(__file__).replace('eon/dex.py','')+'/ps_scan/'
 		gtf_file = glob.glob(annotationDir+'/*.gtf')
 		if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
 		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
@@ -34,11 +33,11 @@ class dex:
 		prosite = self.prosite
 		verbose = self.verbose
 		sep = self.sep
-
+		ps_scan = self.ps_scan
 
 		tempFasta ,ids= self.dexSeqToFasta()
 		if verbose: err(tempFasta)
-		prositeCMD = 'perl ps_scan/ps_scan.pl --pfscan ps_scan/pfscan -d %(prosite)s %(tempFasta)s > %(tempFasta)s.prosite '
+		prositeCMD = 'perl %(ps_scan)sps_scan --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
 		if verbose:err(prositeCMD % locals())
 		os.system(prositeCMD % locals())
 		if verbose: err('ps_scan done, reading results')
