@@ -158,6 +158,7 @@ class gtf:
         indices = indices-set(range(avoid_start,avoid_end+1))
         indices = sorted(list(indices))
         coords = []
+        if indices == []:return None
         start = indices[0]
         for n,i in enumerate(indices):
             if n == 0:continue

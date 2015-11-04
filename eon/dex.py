@@ -18,7 +18,9 @@ class dex:
 		self.sep=sep
 		self.temps = temp
 		self.annotationDir = annotationDir
-		self.ps_scan = os.path.realpath(__file__).replace('eon/dex.py','')+'ps_scan/'
+		self.ps_scan = '/'.join(os.path.realpath(__file__).split('/')[:-2])+'/ps_scan/'
+		#err(self.ps_scan)
+		#return None
 		gtf_file = glob.glob(annotationDir+'/*.gtf')
 		if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
 		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
@@ -28,7 +30,7 @@ class dex:
 #			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
 	
 
-	def addMotifs(self):
+	def addMotifs(self,min_score=2):
 		dexseq = self.dexseq
 		prosite = self.prosite
 		verbose = self.verbose
@@ -41,13 +43,13 @@ class dex:
 		os.system(prositeCMD % locals())
 		if verbose: err('ps_scan done, reading results')
 		
-		self.prositeToDexseq()
+		self.prositeToDexseq(min_score=min_score)
 
 		#this part just cleans the temp files
 		if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: err( 'completed')
 	
-	def readPrositeOut(self):
+	def readPrositeOut(self,min_score=2):
 		'''
 		reads the prosite output and returns it in a dictionary format
 		'''
@@ -85,6 +87,7 @@ class dex:
 					if 'background' in counts:	
 						b_counts, b_length=counts['background']
 						points = (float(f_counts)/float(f_length))/(float(b_counts)/float(b_length))
+						if points < min_score:continue
 						points = '%(points).2f'%locals()
 					else:
 						points = 'N%(f_counts)s'%locals()
@@ -94,7 +97,7 @@ class dex:
 		return proD
 		
 	
-	def prositeToDexseq(self):
+	def prositeToDexseq(self,min_score=2):
 		'''
 		reads a dexseq file and its prosite output and saves the results in dexseqOut
 		'''
@@ -108,7 +111,7 @@ class dex:
 		n=1
 		#newCSV= []
 		prosite = '%(dexseq)s.tmp.fasta.prosite'%locals()
-		proD = self.readPrositeOut()
+		proD = self.readPrositeOut(min_score=min_score)
 		for row in csvfile:
 			if n==1:
 				header = row
@@ -118,11 +121,12 @@ class dex:
 			rowD = dict(zip(header,row))	
 			line = row
 			n+=1
-			seqname	= rowD['genomicData.seqnames']
-			strand  = rowD['genomicData.strand']
-			start   = rowD['genomicData.start']
-			end     = rowD['genomicData.end']
-
+			try:
+				seqname	= rowD['genomicData.seqnames']
+				strand  = rowD['genomicData.strand']
+				start   = rowD['genomicData.start']
+				end     = rowD['genomicData.end']
+			except:continue
 			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
 			if ID in proD:line = [proD[ID]]+line
 			else: line = ['-']+line
@@ -159,11 +163,13 @@ class dex:
 				continue
 			rowD = dict(zip(header,row))	
 			n+=1
-			seqname	= rowD['genomicData.seqnames']
-			strand  = rowD['genomicData.strand']
-			start   = rowD['genomicData.start']
-			end     = rowD['genomicData.end']
-			id      = rowD['groupID']
+			try:
+				seqname	= rowD['genomicData.seqnames']
+				strand  = rowD['genomicData.strand']
+				start   = rowD['genomicData.start']
+				end     = rowD['genomicData.end']
+				id      = rowD['groupID']
+			except:continue
 			#gene    = rowD['gene']
 			start = int(start)
 			end = int(end)
@@ -205,7 +211,7 @@ class dex:
 		return fastaFname,ids
 def sliceSeq(seq,max_length=40000,linelength=80):
 	'''
-	returns a list of sequences, each sequence no longer than mac_length
+	returns a list of sequences, each sequence no longer than max_length
 	and with each line no longer than linelength
 	'''
 	seqs = []

@@ -1,11 +1,11 @@
 import os
 import os.path
 from glob import glob
-
-_taxon="mus_musculus"
+import sys
+_taxon="Mus_musculus"
 _version='GRCm38'
 _annotationDir='annotations'
-def set_taxon(taxon="mus_musculus",version='GRCm38',annotationDir='annotations'):
+def set_taxon(taxon="Mus_musculus",version='GRCm38',annotationDir='annotations'):
 	global _taxon
 	global _version
 	global _annotationDir
@@ -14,13 +14,15 @@ def set_taxon(taxon="mus_musculus",version='GRCm38',annotationDir='annotations')
 	_annotationDir = annotationDir
 
 def chr_url(chromosome):
-	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(_taxon)s/dna/%(_taxon)s.%(_version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
+	taxon = _taxon
+	version = _version
+	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(taxon)s/dna/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
 	return url
 
 def get_fa(chromosome, folder="annotations/genome"):
 	if not os.path.exists(folder):
 		os.makedirs(folder)
-	url = chr_url(chromosome, _taxon)
+	url = chr_url(chromosome)
 	cmd = " ".join(["wget",
 			url,
 			"-P",
@@ -41,19 +43,21 @@ def chr_filename(chromosome):
 	returns the filename for the chromosome genome
 	'''
 	annotationDir =  _annotationDir
-	files = glob("%(annotationDir)s/genome/*.dna.chromosome.%(chromosome)s.fa"%locals())
-	if files == []: return ''
-	else : return files[0]
+	taxon=_taxon
+	version = _version
+	file = ("%(annotationDir)s/genome/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa")%locals()
+	return file
 
 def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	'''
 	returns the genomic sequence
 	'''
 	filename = chr_filename(chromosome)
-	if filename == '':
-		get_fa(chromosome,folder = annotationDir+'/genome')	
-	filename = chr_filename(chromosome)
-	f = open(filename, "r")
+#	if filename == '':
+#		get_fa(chromosome,folder = _annotationDir+'/genome')	
+#	filename = chr_filename(chromosome)
+	try:f = open(filename, "r")
+	except : return 'N'*30
 	seq = f.read().replace("\n","")
 	start,end = int(start),int(end)
 	if direction == '+':
@@ -76,6 +80,7 @@ def seqs_coords(coordinates):
 	return a list of sequences based on a list of coords tuples [(chromosome, start,
 	end, strand),...]
 	'''
+	if coordinates==None:return 'N'*10
 	seqs = []
 	for chromosome, start, end, strand in coordinates:
 		seqs.append(seq_coords(chromosome, start,end, strand))

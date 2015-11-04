@@ -42,8 +42,8 @@ def main():
 
 	parser.add_option('-T','--taxon',
 				action='store', type='string',
-				dest='annotations',default='',
-				help='downloads and generates anotation files of defined taxon -A "mus_musculus"')
+				dest='annotations',default='Mus_musculus',
+				help='downloads and generates anotation files of defined taxon -A "Mus_musculus"')
 
 	parser.add_option('-t','--taxon_version',
 				action='store', type='string',
@@ -85,10 +85,10 @@ def main():
 		if v:commandOptions+='v'
 		os.system('rm '+commandOptions+annotationDir+'/*')
 		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
-	
+	'''
 	if annotations != '':
 		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
-	
+	'''
 
 	if len(args) == 0:
 		parser.print_help()
