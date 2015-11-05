@@ -173,6 +173,49 @@ class dex:
 			#gene    = rowD['gene']
 			start = int(start)
 			end = int(end)
+			'''
+			for mode in ['foreground','background','upstream','downstream']:
+				if verbose:
+					done = 100*((2*n-1)/numlines)
+					err('%(done).2f%%\tretrving sequence for %(id)s %(mode)s'%locals())
+				if mode == 'foreground':
+					seq = fa.seq_coords(seqname,start,end,strand)
+				elif mode == 'background':
+					seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
+										avoid_start=start,
+										avoid_end  =end)))
+				elif mode == 'upstream':
+					continue
+					if strand == '+':
+						start,end = int(end),int(end)+200
+					else:
+						start,end = int(start)-200,int(start)
+					seq = fa.seq_coords(seqname,start,end,strand)
+				elif mode == 'downstream':
+					continue
+					if strand == '+':
+						start,end = int(start)-200,int(start)
+					else:
+						start,end = int(end),int(end)+200
+					seq = fa.seq_coords(seqname,start,end,strand)
+
+				elid mode == 'downstream':
+					continue
+				else: continue  #this part avoids the script from running with downstream or upstream
+						
+						#in order for upstream and downstream to run a suitable background
+						#is needed.
+						#
+						#the readPrositeOut() needs to be updated to handle this modes
+				length=len(seq)
+				seqs = sliceSeq(seq)
+				for seq in seqs:			
+					ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(mode)s:%(length)s' % locals()
+					newFasta= '>%(ID)s\n%(seq)s' % locals()
+					fasta.append(newFasta)
+	
+	
+			'''
 			if verbose:
 				done = 100*((2*n-1)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
