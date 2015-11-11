@@ -1,4 +1,4 @@
-Usage: dexMotif.py [options] [dexseq] 
+Usage: maltese [options] [dexseq] 
 
 Takes as input a dexseq output file and enriches the loci with
 motifsoverrepresented (compared with the rest of the gene).
