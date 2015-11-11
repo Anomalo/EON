@@ -1,3 +1,5 @@
+	Motif ALTernative Exons Scanner Enrichment
+
 Usage: maltese [options] [dexseq] 
 
 Takes as input a dexseq output file and enriches the loci with
