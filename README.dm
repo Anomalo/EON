@@ -1,4 +1,4 @@
-	Motif ALTernative Exons Scanner Enrichment
+	Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
 Usage: maltese [options] [dexseq] 
 
