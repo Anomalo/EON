@@ -16,7 +16,8 @@ def set_taxon(taxon="Mus_musculus",version='GRCm38',annotationDir='annotations')
 def chr_url(chromosome):
 	taxon = _taxon
 	version = _version
-	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(taxon)s/dna/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
+	taxon_lower = taxon.lower()
+	url ="ftp://ftp.ensembl.org/pub/release-78/fasta/%(taxon_lower)s/dna/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa.gz"%locals()
 	return url
 
 def get_fa(chromosome, folder="annotations/genome"):
@@ -56,8 +57,12 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 #	if filename == '':
 #		get_fa(chromosome,folder = _annotationDir+'/genome')	
 #	filename = chr_filename(chromosome)
-	try:f = open(filename, "r")
-	except : return 'N'*30
+	try:
+		f = open(filename, "r")
+	except :
+		get_fa(chromosome,folder = _annotationDir+'/genome')	
+		f = open(filename, "r")
+		
 	seq = f.read().replace("\n","")
 	start,end = int(start),int(end)
 	if direction == '+':

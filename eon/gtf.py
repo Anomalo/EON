@@ -19,7 +19,7 @@ def getGTF(taxon='Mus musculus',release=77, dir='annotations/'):
 		'-P',
 		dir]))
 	os.system(' '.join(['gunzip',
-		dir+fname,
+		dir+'/'+fname,
 		'-d',
 		dir]))
 

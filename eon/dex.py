@@ -163,13 +163,13 @@ class dex:
 				continue
 			rowD = dict(zip(header,row))	
 			n+=1
-			try:
-				seqname	= rowD['genomicData.seqnames']
-				strand  = rowD['genomicData.strand']
-				start   = rowD['genomicData.start']
-				end     = rowD['genomicData.end']
-				id      = rowD['groupID']
-			except:continue
+#			try:
+			seqname	= rowD['genomicData.seqnames']
+			strand  = rowD['genomicData.strand']
+			start   = rowD['genomicData.start']
+			end     = rowD['genomicData.end']
+			id      = rowD['groupID']
+#			except:continue
 			#gene    = rowD['gene']
 			start = int(start)
 			end = int(end)
@@ -220,6 +220,7 @@ class dex:
 				done = 100*((2*n-1)/numlines)
 				err('%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
 			seq = fa.seq_coords(seqname,start,end,strand)
+			print seq
 			length=len(seq)
 			seqs = sliceSeq(seq)
 			for seq in seqs:			

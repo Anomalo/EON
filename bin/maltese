@@ -4,7 +4,8 @@ from optparse import OptionParser
 import csv
 import glob
 import sys
-sys.path.insert(0,'..')
+path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
+sys.path.insert(0,path)
 from eon import fa
 #from eon import dex #this is imported at a later stage as it takes a long time to load
 def err(*vars):
@@ -25,7 +26,6 @@ def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 		reload(gtf)
 	#
 	fa.set_taxon(taxon=taxon,version=version)	
-	
 		
 def main():
 	description='''
@@ -84,7 +84,7 @@ def main():
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
-		os.system('rm '+commandOptions+annotationDir+'/*')
+		os.system('rm '+commandOptions+' '+annotationDir+'/*')
 		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
 	'''
 	if annotations != '':
