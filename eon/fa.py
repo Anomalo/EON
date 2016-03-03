@@ -54,9 +54,9 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	returns the genomic sequence
 	'''
 	filename = chr_filename(chromosome)
-#	if filename == '':
-#		get_fa(chromosome,folder = _annotationDir+'/genome')	
-#	filename = chr_filename(chromosome)
+	#if filename == '':
+	#	get_fa(chromosome,folder = _annotationDir+'/genome')	
+	#filename = chr_filename(chromosome)
 	try:
 		f = open(filename, "r")
 	except :
@@ -78,7 +78,6 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 		for i in seqReversed:
 			seq+=convert[i]
 		return seq
-
 
 def seqs_coords(coordinates):
 	'''
