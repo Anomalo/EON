@@ -201,7 +201,7 @@ def main():
 				'--sep %s'%repr(sep),
 				'--format %s'%repr(inputFormat),
 				'--annotations %s'%repr(annotationDir),
-				'--Tempfiles','--verbose'#,'--SkipProsite',
+				'--Tempfiles','--verbose',#'--SkipProsite',
 				tempInput.format(directory,processes,n),
 				])
 			
