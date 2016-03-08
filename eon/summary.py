@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
+#mpl.use('Agg')
 from pprint import pprint
 from matplotlib import rcParams
 import scipy.stats as st
@@ -8,7 +9,7 @@ import matplotlib.cm as cmx
 import matplotlib.colors as colors
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 rcParams.update({'figure.autolayout': True})
-
+from pprint import pprint
 
 
 def bionmial_test(sample,background):
@@ -44,9 +45,9 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 		#	changes.append(float(motif.split(':')[1]))
 		for motif in malteseData.split(' ; '):
 			if motif=='-':
-				newLines.append('-,-,-,-,-,-,-%(dexseqData)s'%locals())
+				newLines.append(sep.join(['-']*7)+'%(dexseqData)s'%locals())
 				continue
-
+			if motif=='':continue
 			motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
 			#print motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen
 			#pValue = bionmial_test(float(logFold2),changes)
@@ -57,15 +58,16 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	#makes plot###################################################################################
 	##############################################################################################
 	#joins all the motifs together
-	
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]],
+	#pprint(	map(lambda x: (x.split(sep),len(x.split(sep))),
+	#		open(fnameOut).read().split('\n')[1:]))
+	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[IDi]],
 			open(fnameOut).read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
 	
-	for motif, change, n,n,n,n, exon,colChange in f:
+	for motif, change, n,n,n,n, n,colChange,exon in f:
 		if change =='-':continue
 		if 'N' in change:
 			print motif,change, exon
@@ -136,15 +138,18 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	##############################################################################################
 	#joins all the motifs together
 
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]],
+	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[IDi]],
 			open(fnameOut).read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
 	#print CHANGE
-	for motif, change, n,n,n,n, exon,colChange in f:
+	for motif, change, n,n,n,n, n,colChange,exon in f:
 		if change =='-':continue
+		if 'N' in change:
+			print motif,exon, change
+			continue
 		change = float(change)
 		if not exon in data:
 			data[exon]=[]

@@ -39,7 +39,8 @@ class gtf:
 		line = dict(zip(header, line))
 		attr = line['attribute'].split('; ')
 		for at in attr:
-			attName, attVal = at.split(' ')
+			attName= at.split(' ')[0]
+			attVal = at.replace(attName+' ','')
 			line.update({attName: attVal})
 		del line['attribute']
 		return line

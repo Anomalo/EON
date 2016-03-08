@@ -111,7 +111,7 @@ def main():
 				help='what format is the input data'
 					'it takes a string such as "0,8,9,10,12,-" (default dexseq format)'
 					'each number represents the column where certain information is.'
-					'"event_name,chromosome,start,end,strand,change"'
+					'"entrezID,chromosome,start,end,strand,change"'
 					'for rMats use "1,3,5,6,4,23"'
 					'change can be "-" if none present, it is only used for plotting'
 					)
@@ -169,14 +169,16 @@ def main():
 
 	if processes>1:
 		#running multiprocesses, making a directory 
-		#creatign tmpDir
-		directory = dexseq+'TMP'
-		if not os.path.exists(directory):
-			os.makedirs(directory)
 		#splitting input file
 		lines = open(dexseq).read().splitlines()
 		header = lines.pop(0)
-		if v: 'dividing input'
+		if v: print 'dividing input'
+		#creatign tmpDir
+		directory = dexseq+'TMP_'+str(processes)
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		directory = dexseq+'TMP'
+
 		tempInput = '{}_{}/{}_input.txt'
 		#empties/creates output file
 		f = open(output,'w')
@@ -212,7 +214,7 @@ def main():
 				#print 'runnning'
 				for i in PIDs: 
 					print i.stdout.read()
-				print 1
+				#print 1
 				time.sleep(1)
 
 
@@ -229,6 +231,7 @@ def main():
 			#print 'albert remember to merge '+tempInput.format(directory,n)
 			rows = rows+open('{}_{}/{}_input.txt.withMotifs.csv.tmp'.format(directory,processes,n)).read().splitlines()[1:]
 		open(output+'.tmp','w').write('\n'.join(rows))
+		print 'summarizing'
 		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat)
 
 		print 'Done', output

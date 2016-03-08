@@ -11,6 +11,15 @@ import sys
 import time
 import subprocess
 import atexit
+from Bio.Alphabet import generic_dna
+from Bio.Seq import Seq
+
+def translate(seq):
+	while len(seq) % 3 != 0:
+		seq = seq[:-1]
+	coding_dna = Seq(seq, generic_dna)
+	return str(coding_dna.translate())
+
 
 def processes():
 	pl = subprocess.Popen('ps aux'.split(), stdout=subprocess.PIPE).communicate()[0]
@@ -120,11 +129,14 @@ class maltese:
 				if line =='':continue
 				if len( line.split())>3:
 					start,space,end = line.split()[:3]
+					start -=1
 					#count += int(end)-int(start)
 					for i in range(int(start),int(end)):
 						virtual[i]=1
 			count = sum(virtual)
-			name , ground, length,motif = description.split(':')
+			#print repr(description.split(':')[:3])
+			name , ground, length = description.split(':')[:3]
+			motif = ':'.join(description.split(':')[3:])
 			motif = motif.split()[1]
 			if not name in proD: proD[name]={}
 			if not motif in proD[name]:
@@ -220,6 +232,7 @@ class maltese:
 		fasta = []
 		ids = []
 		for row in csvfile:
+			print n
 			if n==0:
 				header = row
 
@@ -237,77 +250,28 @@ class maltese:
 			#gene    = rowD['gene']
 			start = int(start)
 			end = int(end)
-			if float(pVal)>self.pvalFilter:continue
-			'''
-			for mode in ['foreground','background','upstream','downstream']:
-				if verbose:
-					done = 100*((2*n-1)/numlines)
-					err('%(done).2f%%\tretrving sequence for %(id)s %(mode)s'%locals())
-				if mode == 'foreground':
-					seq = fa.seq_coords(seqname,start,end,strand)
-				elif mode == 'background':
-					seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
-										avoid_start=start,
-										avoid_end  =end)))
-				elif mode == 'upstream':
-					continue
-					if strand == '+':
-						start,end = int(end),int(end)+200
-					else:
-						start,end = int(start)-200,int(start)
-					seq = fa.seq_coords(seqname,start,end,strand)
-				elif mode == 'downstream':
-					continue
-					if strand == '+':
-						start,end = int(start)-200,int(start)
-					else:
-						start,end = int(end),int(end)+200
-					seq = fa.seq_coords(seqname,start,end,strand)
 
-				elid mode == 'downstream':
-					continue
-				else: continue  #this part avoids the script from running with downstream or upstream
-						
-						#in order for upstream and downstream to run a suitable background
-						#is needed.
-						#
-						#the readPrositeOut() needs to be updated to handle this modes
-				length=len(seq)
-				seqs = sliceSeq(seq)
-				for seq in seqs:			
-					ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(mode)s:%(length)s' % locals()
-					newFasta= '>%(ID)s\n%(seq)s' % locals()
-					fasta.append(newFasta)
-	
-	
-			'''
-			if verbose:
-				done = 100*((2*n-1)/numlines)
-				err('\033[F%(done).2f%%\tretrving sequence for %(id)s foreground'%locals())
-			seq = fa.seq_coords(seqname,start,end,strand)
-			length=len(seq)
-			seqs = sliceSeq(seq)
-			for seq in seqs:			
-				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:foreground:%(length)s' % locals()
-				newFasta= '>%(ID)s\n%(seq)s' % locals()
-				fasta.append(newFasta)
+			#if float(pVal)>self.pvalFilter:continue
 
+			for ground in ['foreground','background']:
+				for frame in [0]:
+					if verbose:
+						done = 100*((2*n-1)/numlines)
+						print('\033[F%(done).2f%%\tretrving sequence for %(id)s %(ground)s'%locals())
+					if ground == 'foreground':
+						seq = fa.seq_coords(seqname,start,end,strand)
 
-			if verbose:
-				done = 100*((2*n)/numlines)
-				err('\033[F%(done).2f%%\tretrving sequence for %(id)s background'%locals())
-
-			seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
-									avoid_start=start,
-									avoid_end  =end)))
-			length=len(seq)
-			seqs = sliceSeq(seq)
-			for seq in seqs:			
-				ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:background:%(length)s' % locals()
-				newFasta= '>%(ID)s\n%(seq)s' % locals()
-				fasta.append(newFasta)
-
-
+					if ground == 'background':
+						seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
+											avoid_start=start,
+											avoid_end  =end)))
+					seq = translateSeq(seq,frame)
+					length=len(seq)
+					seqs = sliceSeq(seq)
+					for seq in seqs:			
+						ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(ground)s:%(length)s' % locals()
+						newFasta= '>%(ID)s\n%(seq)s' % locals()
+						fasta.append(newFasta)
 
 
 			ids.append(ID)
@@ -337,3 +301,10 @@ def sliceSeq(seq,max_length=40000,linelength=80):
 			choppedSeq+=subseq[j:j+linelength]+'\n'
 		seqs.append(choppedSeq)
 	return seqs
+def translateSeq(seq,frame):
+
+	seq = seq[frame:]
+	#seq = seq[:3*len(seq)/3]
+	if len(seq)<1000:	print seq
+	print ''
+	return translate(seq)
