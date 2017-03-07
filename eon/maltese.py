@@ -105,7 +105,7 @@ class maltese:
 		self.prositeToDexseq()
 
 		#this part just cleans the temp files
-		if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
+		#if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: err( 'completed')
 	
 	def readPrositeOut(self):
@@ -129,6 +129,8 @@ class maltese:
 				if line =='':continue
 				if len( line.split())>3:
 					start,space,end = line.split()[:3]
+					start = int(start)
+					end = int(end)
 					start -=1
 					#count += int(end)-int(start)
 					for i in range(int(start),int(end)):
@@ -188,19 +190,20 @@ class maltese:
 				n+=1
 				newCSV.append(self.sep.join(['prosite_motifs']+header))
 				continue
-			rowD = dict(zip(header,row))	
+			rowD = dict(zip(header,row))
 			line = row
 			n+=1
 			try:
 				seqname	= row[CHR]#D['genomicData.seqnames']
 				strand  = row[STRAND]#D['genomicData.strand']
-				start   = row[START]#D['genomicData.start']
-				end     = row[END]#D['genomicData.end']
+				start   = row[START].split('.')[0]
+				end     = row[END].split('.')[0]
 				pVal	= row[PVAL]
 
 			except:continue
 			if float(pVal)>self.pvalFilter:continue
 			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
+			print ID,pVal
 			if ID in proD:line = [proD[ID]]+line
 			else: line = ['-']+line
 			newCSV.append(self.sep.join(line))
@@ -210,7 +213,7 @@ class maltese:
 		f.write(newCSV)
 		f.close()
 		if self.verbose: err('saved to '+self.dexseqOut)
-		
+
 	def dexSeqToFasta(self,linelength=80):
 		'''
 		reads a dexseq output and produces a fasta file based on the coordinates of sequences altered
@@ -221,7 +224,12 @@ class maltese:
 		verbose = self.verbose
 		sep = self.sep
 		GTF = gtf.gtf(self.gtf_file)
-		IDi,CHR,START,END,STRAND,PVAL,CHANGE = map(int,inputFormat.split(','))
+		IDi,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(',')
+		IDi,CHR,START,END,STRAND,PVAL = map(int,[IDi,CHR,START,END,STRAND,PVAL])
+		try:
+			CHANGE = int(CHANGE)
+		except:pass
+
 		if verbose:
 			f = open(dexseq)
 			numlines= float(len(f.readlines()))*2
@@ -248,8 +256,8 @@ class maltese:
 			pVal	= row[PVAL]
 			#except:continue
 			#gene    = rowD['gene']
-			start = int(start)
-			end = int(end)
+			start = int(start.split('.')[0])
+			end = int(end.split('.')[0])
 
 			#if float(pVal)>self.pvalFilter:continue
 

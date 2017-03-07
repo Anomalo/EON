@@ -46,7 +46,7 @@ def chr_filename(chromosome):
 	annotationDir =  _annotationDir
 	taxon=_taxon
 	version = _version
-	file = ("%(annotationDir)s/genome/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa")%locals()
+	file = (("%(annotationDir)s/genome/%(taxon)s.%(version)s.dna.chromosome.%(chromosome)s.fa")%locals()).replace('//','/')
 	return file
 
 def seq_coords(chromosome, start=0, end=-1, direction='+'):
@@ -55,14 +55,14 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	'''
 	filename = chr_filename(chromosome)
 	#if filename == '':
-	#	get_fa(chromosome,folder = _annotationDir+'/genome')	
+	#	get_fa(chromosome,folder = _annotationDir+'/genome')
 	#filename = chr_filename(chromosome)
 	try:
 		f = open(filename, "r")
 	except :
-		get_fa(chromosome,folder = _annotationDir+'/genome')	
+		get_fa(chromosome,folder = _annotationDir+'/genome')
 		f = open(filename, "r")
-		
+
 	seq = f.read().replace("\n","")
 	start,end = int(start),int(end)
 	if direction == '+':

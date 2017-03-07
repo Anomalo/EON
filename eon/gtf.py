@@ -44,13 +44,13 @@ class gtf:
 			line.update({attName: attVal})
 		del line['attribute']
 		return line
-	
+
 	def __init__(self, f = None):
 		'''
 		object to get fast queries regarding gtf data
 		f = gtf file
 		'''
-				
+
 		if f == None:
 			f = glob('annotations/*gtf')
 			if len(f) != 1:

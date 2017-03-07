@@ -26,8 +26,8 @@ class dex:
 		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
 		self.gtf_file = gtf_file[0]
 		fa.set_taxon(taxon,version,annotationDir = annotationDir)
-#		if not os.path.isfile(self.prosite):
-#			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
+		if not os.path.isfile(self.prosite):
+			os.system('wget -O annotations/prosite.dat ftp://ftp.expasy.org/databases/prosite/prosite.dat')
 	
 
 	def addMotifs(self,min_score=2):
@@ -38,17 +38,17 @@ class dex:
 		ps_scan = self.ps_scan
 		tempFasta ,ids= self.dexSeqToFasta()
 		if verbose: err(tempFasta)
-		prositeCMD = 'perl %(ps_scan)sps_scan.pl --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
+		prositeCMD = 'perl %(ps_scan)/ps_scan.pl --pfscan %(ps_scan)/pfscan -d %(ps_scan)/prosite.dat %(tempFasta)s > %(tempFasta)s.prosite '
 		if verbose:err(prositeCMD % locals())
+		print prositeCMD %locals()
 		os.system(prositeCMD % locals())
 		if verbose: err('ps_scan done, reading results')
-		
 		self.prositeToDexseq(min_score=min_score)
 
 		#this part just cleans the temp files
 		if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: err( 'completed')
-	
+
 	def readPrositeOut(self,min_score=2):
 		'''
 		reads the prosite output and returns it in a dictionary format
@@ -95,8 +95,7 @@ class dex:
 			out = ' ; '.join(out)
 			proD[exon]=out
 		return proD
-		
-	
+
 	def prositeToDexseq(self,min_score=2):
 		'''
 		reads a dexseq file and its prosite output and saves the results in dexseqOut
@@ -118,7 +117,7 @@ class dex:
 				n+=1
 				print ','.join(['prosite_motifs']+header)
 				continue
-			rowD = dict(zip(header,row))	
+			rowD = dict(zip(header,row))
 			line = row
 			n+=1
 			try:
@@ -136,8 +135,7 @@ class dex:
 		#f = open(dexseqOut,'w')
 		#f.write(newCSV)
 		#f.close()
-		
-			
+
 	def dexSeqToFasta(self,linelength=80):
 		'''
 		reads a dexseq output and produces a fasta file based on the coordinates of sequences altered

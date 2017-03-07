@@ -85,6 +85,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	labels = map(lambda x: x[0],data)
 	fig = plt.figure(figsize = (10,0.5*len(data)))
 	ax = fig.add_subplot(111)
+	print values
 	bp = ax.boxplot(values, 0, '', 0,patch_artist=True)
 	vminmax = 0.5
 	cNorm  = colors.Normalize(vmin=-vminmax, vmax=vminmax)
