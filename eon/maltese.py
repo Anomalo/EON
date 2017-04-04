@@ -224,7 +224,7 @@ class maltese:
 		verbose = self.verbose
 		sep = self.sep
 		GTF = gtf.gtf(self.gtf_file)
-		IDi,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(',')
+		IDi,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(",")
 		IDi,CHR,START,END,STRAND,PVAL = map(int,[IDi,CHR,START,END,STRAND,PVAL])
 		try:
 			CHANGE = int(CHANGE)

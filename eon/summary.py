@@ -21,11 +21,12 @@ def bionmial_test(sample,background):
 
 def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	'''
-	given the maltesers motif of dexseq output, it will generate a boxplot summarizing the motifs changes
+	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
 	'''
 
 	IDi,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
 	f = open(fname).read().split('\n')
+	CHANGE-=1
 	header = f.pop(0)
 	header = header.replace('prosite_motifs',
 							sep.join(['motif',
