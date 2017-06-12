@@ -1,15 +1,20 @@
 	Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
-Usage: maltese [options] [dexseq] 
+Usage: maltese [options]
 
 Takes as input a dexseq output file and enriches the loci with
-motifsoverrepresented (compared with the rest of the gene).
+motifsoverrepresented (compared with the rest of the gene)dexMotif [options]
+<dexseq> ./bin/maltese -vm -s '' -F '1,3,5,6,4' -P 5 MATS_5.txt
 
 Options:
   -h, --help            show this help message and exit
-  -A ANNOTATIONS, --annotation=ANNOTATIONS
+  -o OUTPUT, --output=OUTPUT
+                        output file
+  -a ANNOTATIONSDIR, --annotations=ANNOTATIONSDIR
+                        directory with annotations: the gtf file
+  -T ANNOTATIONS, --taxon=ANNOTATIONS
                         downloads and generates anotation files of defined
-                        taxon -A "mus_musculus"
+                        taxon -A "Mus_musculus"
   -t ANNOTATION_VERSION, --taxon_version=ANNOTATION_VERSION
                         defines what genome version to download, default is
                         "GRCm38"
@@ -17,8 +22,20 @@ Options:
                         taxon of interest)
   -v, --verbose         shows you what am I thinking
   -V, --version         prints version
-  -T, --Tempfiles       does not erase temprary files
-
+  -m, --Tempfiles       does not erase temprary files
+  -s SEP, --sep=SEP     what separator is present in the input. Also used for
+                        output
+  -S, --SkipProsite     Skips the steps leading to analysing the prosite
+                        output
+  -F INPUTFORMAT, --format=INPUTFORMAT
+                        what format is the input datait takes a string such as
+                        "0,8,9,10,12,-" (default dexseq format)each number
+                        represents the column where certain information
+                        is."entrezID,chromosome,start,end,strand,change"for
+                        rMats use "1,3,5,6,4,23"change can be "-" if none
+                        present, it is only used for plotting
+  -P PROCESSES, --Processes=PROCESSES
+                        number of processors to use
 
 
 This tool enriches exons that have been spliced as seen in dexseq DEXSeqResults.
