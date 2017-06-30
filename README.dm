@@ -1,10 +1,12 @@
+
+'''
 	Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
-Usage: maltese [options]
 
-Takes as input a dexseq output file and enriches the loci with
-motifsoverrepresented (compared with the rest of the gene)dexMotif [options]
-<dexseq> ./bin/maltese -vm -s '' -F '1,3,5,6,4' -P 5 MATS_5.txt
+Usage: maltese [options] diff_splicing_file
+
+ Takes as input a dexseq output file and enriches the loci with motifs
+overrepresented (compared with the rest of the gene).
 
 Options:
   -h, --help            show this help message and exit
@@ -32,12 +34,13 @@ Options:
                         "0,8,9,10,12,-" (default dexseq format)each number
                         represents the column where certain information
                         is."entrezID,chromosome,start,end,strand,change"for
-                        rMats use "1,3,5,6,4,23"change can be "-" if none
-                        present, it is only used for plotting
+                        rMats use "1,3,5,6,4,23"for dexseq use
+                        "0,8,9,10,12,-"change can be "-" if none present, it
+                        is only used for plotting
   -P PROCESSES, --Processes=PROCESSES
                         number of processors to use
 
-
+'''
 This tool enriches exons that have been spliced as seen in dexseq DEXSeqResults.
 It first creates a temporary fasta file with the sequences of the exons spliced, and the rest of the gene sans the spliced exon (background).
 It then annotates the sequences extracted with prosite. Finally it calculates the score of each motif by:
