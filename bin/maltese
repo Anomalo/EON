@@ -43,16 +43,13 @@ def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 	fa.set_taxon(taxon=taxon,version=version)	
 		
 def main():
+	usage ='maltese [options] diff_splicing_file'
 	description='''
 	Takes as input a dexseq output file and enriches the loci with motifs
-	overrepresented (compared with the rest of the gene)
-	dexMotif [options] <dexseq> 
-
-	./bin/maltese -vm -s '\t' -F '1,3,5,6,4' -P 5 MATS_5.txt
-
-
-	'''.replace('\n','').replace('\t','')
-	parser = OptionParser(description=description)
+	overrepresented (compared with the rest of the gene).
+	'''.replace('\t','') # .replace('\n','').replace('\t','')
+		#./bin/maltese -vm -s '\t' -F '1,3,5,6,4' -P 5 MATS_5.txt
+	parser = OptionParser(description=description,usage = usage)
 
 	parser.add_option('-o','--output',
 				action='store', type='string',
@@ -107,12 +104,13 @@ def main():
 
 	parser.add_option('-F','--format',
 				action='store', type='string',
-				dest='inputFormat',default="0,8,9,10,12,-",
+				dest='inputFormat',#default="0,8,9,10,12,-",
 				help='what format is the input data'
 					'it takes a string such as "0,8,9,10,12,-" (default dexseq format)'
 					'each number represents the column where certain information is.'
 					'"entrezID,chromosome,start,end,strand,change"'
 					'for rMats use "1,3,5,6,4,23"'
+					'for dexseq use "0,8,9,10,12,-"'
 					'change can be "-" if none present, it is only used for plotting'
 					)
 
@@ -140,6 +138,10 @@ def main():
 		err('this is version',0)
 		return None
 
+	if len(args) == 0:
+		parser.print_help()
+		return None
+
 	dexseq=args[0]
 	if output=='':
 			output = '%(dexseq)s.withMotifs.csv'%locals()		
@@ -154,9 +156,6 @@ def main():
 		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
 	'''
 
-	if len(args) == 0:
-		parser.print_help()
-		return None
 
 	if len(args) > 1:
 		print args
