@@ -1,4 +1,4 @@
-# Motif ALTernative Exons Scanner Enrichment of RNA-Seq
+#Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
 ## Manual
 ```
