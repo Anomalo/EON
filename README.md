@@ -5,7 +5,7 @@ It first creates a temporary fasta file with the sequences of the exons spliced,
 It then annotates the sequences extracted with prosite. Finally it calculates the score of each motif by:
 
 score = (motifs in exon / size of exon)/(motifs in background / size of background)
-![](http://mathurl.com/render.cgi?%5Czeta%28s%29%20%3D%20%5Csum_%7Bn%3D1%7D%5E%5Cinfty%20%5Cfrac%7B1%7D%7Bn%5Es%7D%5Cnocache)
+
 If there is no motifs in the background then the score just gives the count of motifs flagged with an 'N' (number).
 
 ## Manual
