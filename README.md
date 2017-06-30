@@ -1,8 +1,7 @@
+#Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
-'''
-	Motif ALTernative Exons Scanner Enrichment of RNA-Seq
-
-
+## Manual
+```
 Usage: maltese [options] diff_splicing_file
 
  Takes as input a dexseq output file and enriches the loci with motifs
@@ -16,7 +15,7 @@ Options:
                         directory with annotations: the gtf file
   -T ANNOTATIONS, --taxon=ANNOTATIONS
                         downloads and generates anotation files of defined
-                        taxon -A "Mus_musculus"
+                        taxon -A "Mus_musculus"s
   -t ANNOTATION_VERSION, --taxon_version=ANNOTATION_VERSION
                         defines what genome version to download, default is
                         "GRCm38"
@@ -40,7 +39,7 @@ Options:
   -P PROCESSES, --Processes=PROCESSES
                         number of processors to use
 
-'''
+```
 This tool enriches exons that have been spliced as seen in dexseq DEXSeqResults.
 It first creates a temporary fasta file with the sequences of the exons spliced, and the rest of the gene sans the spliced exon (background).
 It then annotates the sequences extracted with prosite. Finally it calculates the score of each motif by:
