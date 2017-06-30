@@ -144,8 +144,8 @@ def main():
 
 	dexseq=args[0]
 	if output=='':
-			output = '%(dexseq)s.withMotifs.csv'%locals()		
-	
+			output = '%(dexseq)s.withMotifs.csv'%locals()
+
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
