@@ -185,7 +185,6 @@ def main():
 		print args
 		err('more than one argument given')
 		return None  
-	
 
 	if v: err('Analyzing',dexseq)
 
@@ -229,7 +228,6 @@ def main():
 				'--Tempfiles','--verbose',#'--SkipProsite',
 				tempInput.format(directory,processes,n),
 				])
-			
 			PIDs.append(command(CMD))
 
 		try: #wait for the subprocesses to run

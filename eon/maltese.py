@@ -171,6 +171,8 @@ class maltese:
 		'''
 		reads a dexseq file and its prosite output and saves the results in dexseqOut
 		'''
+		if self.verbose:
+			err('running ps_scan')
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep
@@ -203,7 +205,6 @@ class maltese:
 			except:continue
 			if float(pVal)>self.pvalFilter:continue
 			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
-			print ID,pVal
 			if ID in proD:line = [proD[ID]]+line
 			else: line = ['-']+line
 			newCSV.append(self.sep.join(line))
@@ -223,6 +224,7 @@ class maltese:
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep
+		if self.verbose: err('reading GTF')
 		GTF = gtf.gtf(self.gtf_file)
 		IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(",")
 		IDi,CHR,START,END,STRAND,PVAL = map(int,[IDi,CHR,START,END,STRAND,PVAL])
@@ -234,6 +236,7 @@ class maltese:
 			f = open(dexseq)
 			numlines= float(len(f.readlines()))*2
 			f.close()
+			err('retriving',numlines,'sequences')
 		f = open(dexseq)
 		csvfile = csv.reader(f,delimiter=sep)
 		n=0
@@ -265,7 +268,7 @@ class maltese:
 				for frame in [0]:
 					if verbose:
 						done = 100*((2*n-1)/numlines)
-						print('\033[F%(done).2f%%\tretriving sequence for %(id)s %(ground)s'%locals())
+						err('\033[F%(done).2f%%\tretriving sequence for %(id)s %(ground)s'%locals())
 					if ground == 'foreground':
 						seq = fa.seq_coords(seqname,start,end,strand)
 					if ground == 'background':
