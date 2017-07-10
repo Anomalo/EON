@@ -54,7 +54,8 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 			#pValue = bionmial_test(float(logFold2),changes)
 			newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
 			newLines.append(newLine)
-	open(fnameOut,'w').write('\n'.join(newLines))
+	print fnameOut+'.csv'
+	open(fnameOut+'.csv','w').write('\n'.join(newLines))
 	##############################################################################################
 	#makes plot###################################################################################
 	##############################################################################################
@@ -63,14 +64,13 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	#		open(fnameOut).read().split('\n')[1:]))
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut).read().split('\n')[1:])
-	print f[0]
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
 	
 	for motif, change, n,n,n,n, n,colChange,exon in f:
-		print motif, change,colChange,exon
+		#print motif, change,colChange,exon
 		if change =='-':continue
 		if 'N' in change:
 			#print motif,change, exon
@@ -151,7 +151,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	for motif, change, n,n,n,n, n,colChange,exon in f:
 		if change =='-':continue
 		if 'N' in change:
-			print motif,exon, change
+			#print motif,exon, change
 			continue
 		change = float(change)
 		if not exon in data:
@@ -233,6 +233,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 		#legend.set_yticklabels()
 		#legend.set_yaxis([-vminmax,0,vminmax])
 		fig.savefig(fnameOut+'_exons.pdf')
+		print fnameOut+'_exons.pdf'
 
 
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
@@ -248,6 +249,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 			else:		table[-1].append(str(X[0][1]))
 	table = '\n'.join(map(lambda x: sep.join(x),table))
 	f=open(fnameOut+'_motifGene.csv','w')
+	print fnameOut+'_motifGene.csv'
 	f.write(table)
 	f.close()
 
@@ -258,6 +260,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	f, ax = plt.subplots()#figsize=(9, 6))
 	sns.heatmap(data, linewidths=0, ax=ax)
 	f.savefig(fnameOut+"_motifGene.pdf")
+	print fnameOut+"_motifGene.pdf"
 	#except:
 	#	print ""
 
