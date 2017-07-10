@@ -146,13 +146,15 @@ def main():
 
 	if inputFormat==None:
 		print dexseq
-		with open(dexseq) as f:
-			for head in f:
-				break
+		f = open(dexseq)
+		contents = f.read().split('\n')[:2]
+		f.close()
+		head = zip(*[line.split(sep) for line in contents])
 		print "option -F (--format) should be a comma separated indices of the column number of 'entrezID,chromosome,start,end,strand,change'"
 		print "this are the header indices for your file:"
-		for a,b in enumerate( head.split(sep)):
-			print a,'\t',b
+		for a,b in enumerate( head):
+			b,c = b
+			print a,'\t',b,'(',c,')'
 
 		sys.exit()
 
