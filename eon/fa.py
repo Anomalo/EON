@@ -61,12 +61,15 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 		f = open(filename, "r")
 	except :
 		get_fa(chromosome,folder = _annotationDir+'/genome')
-		f = open(filename, "r")
+		try:
+			f = open(filename, "r")
+		except:
+			raise("failed to download or find the genome for taxon "+_taxon+" version "+_version+".\n please place the individual dna for each chromosome in .gz format in the a folder namded 'genome' in the annotation folder")
 
 	seq = f.read().replace("\n","")
 	start,end = int(start),int(end)
 	if direction == '+':
-		return seq[start:end]
+		seq = seq[start:end]
 	else:
 		seqReversed = seq[start:end][::-1]
 		convert = {	'A':'T',
@@ -77,7 +80,7 @@ def seq_coords(chromosome, start=0, end=-1, direction='+'):
 		seq = ''
 		for i in seqReversed:
 			seq+=convert[i]
-		return seq
+	return seq
 
 def seqs_coords(coordinates):
 	'''
