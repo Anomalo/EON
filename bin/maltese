@@ -40,8 +40,8 @@ def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 		gtf.getGTF(taxon = taxon, dir = dir)
 		reload(gtf)
 	#
-	fa.set_taxon(taxon=taxon,version=version)	
-		
+	fa.set_taxon(taxon=taxon,version=version)
+
 def main():
 	usage ='maltese [options] diff_splicing_file'
 	description='''
@@ -75,7 +75,7 @@ def main():
 				action='store_true',
 				dest='purge', default=False,
 				help='delete all anotation files (usefull for changing the taxon of interest)')
-	
+
 	parser.add_option('-v','--verbose',
 				action='store_true',
 				dest ='v', default=False,
@@ -90,7 +90,7 @@ def main():
 				action='store_true',
 				dest ='tempfiles', default=False,
 				help='does not erase temprary files')
-	
+
 	parser.add_option('-s','--sep',
 				action='store', type='string',
 				dest='sep',default=',',
@@ -143,6 +143,19 @@ def main():
 		return None
 
 	dexseq=args[0]
+
+	if inputFormat==None:
+		print dexseq
+		with open(dexseq) as f:
+			for head in f:
+				break
+		print "option -F (--format) should be a comma separated indices of the column number of 'entrezID,chromosome,start,end,strand,change'"
+		print "this are the header indices for your file:"
+		for a,b in enumerate( head.split(sep)):
+			print a,'\t',b
+
+		sys.exit()
+
 	if output=='':
 			output = '%(dexseq)s.withMotifs.csv'%locals()
 
