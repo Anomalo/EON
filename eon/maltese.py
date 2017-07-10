@@ -176,7 +176,7 @@ class maltese:
 		sep = self.sep
 		inputFormat=self.inputFormat
 
-		IDi,CHR,START,END,STRAND,PVAL,CHANGE = map(int,inputFormat.replace('-','-1').split(','))
+		IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(int,inputFormat.replace('-','-1').split(','))
 
 		f = open(dexseq)
 		csvfile = csv.reader(f,delimiter=sep)
@@ -224,7 +224,7 @@ class maltese:
 		verbose = self.verbose
 		sep = self.sep
 		GTF = gtf.gtf(self.gtf_file)
-		IDi,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(",")
+		IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = inputFormat.split(",")
 		IDi,CHR,START,END,STRAND,PVAL = map(int,[IDi,CHR,START,END,STRAND,PVAL])
 		try:
 			CHANGE = int(CHANGE)
@@ -265,18 +265,19 @@ class maltese:
 				for frame in [0]:
 					if verbose:
 						done = 100*((2*n-1)/numlines)
-						print('\033[F%(done).2f%%\tretrving sequence for %(id)s %(ground)s'%locals())
+						print('\033[F%(done).2f%%\tretriving sequence for %(id)s %(ground)s'%locals())
 					if ground == 'foreground':
 						seq = fa.seq_coords(seqname,start,end,strand)
-
 					if ground == 'background':
+						#print '>>>>>',id,start,end,GTF.getGeneCoords(id,avoid_start=start, avoid_end  =end)
+
 						seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
 											avoid_start=start,
 											avoid_end  =end)))
 					seq = translateSeq(seq,frame)
 					length=len(seq)
 					seqs = sliceSeq(seq)
-					for seq in seqs:			
+					for seq in seqs:
 						ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(ground)s:%(length)s' % locals()
 						newFasta= '>%(ID)s\n%(seq)s' % locals()
 						fasta.append(newFasta)

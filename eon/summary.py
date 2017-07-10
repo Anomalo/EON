@@ -1,8 +1,7 @@
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib as mpl
-#mpl.use('Agg')
-from pprint import pprint
 from matplotlib import rcParams
 import scipy.stats as st
 import matplotlib.cm as cmx
@@ -24,12 +23,13 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
 	'''
 
-	IDi,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
+	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
+	if GENENAME ==-1: GENENAME=IDi
 	f = open(fname).read().split('\n')
 	CHANGE-=1
 	header = f.pop(0)
 	header = header.replace('prosite_motifs',
-							sep.join(['motif',
+							sep.join([	'motif',
 									'logFold2',
 									'motifExonCount',
 									'exonLen',
@@ -61,17 +61,19 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	#joins all the motifs together
 	#pprint(	map(lambda x: (x.split(sep),len(x.split(sep))),
 	#		open(fnameOut).read().split('\n')[1:]))
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[IDi]],
+	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut).read().split('\n')[1:])
+	print f[0]
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
 	
 	for motif, change, n,n,n,n, n,colChange,exon in f:
+		print motif, change,colChange,exon
 		if change =='-':continue
 		if 'N' in change:
-			print motif,change, exon
+			#print motif,change, exon
 			continue
 		change = float(change)
 		if not motif in data:
@@ -86,61 +88,60 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	labels = map(lambda x: x[0],data)
 	fig = plt.figure(figsize = (10,0.5*len(data)))
 	ax = fig.add_subplot(111)
-	print values
-	bp = ax.boxplot(values, 0, '', 0,patch_artist=True)
-	vminmax = 0.5
-	cNorm  = colors.Normalize(vmin=-vminmax, vmax=vminmax)
-	scalarMap = cmx.ScalarMappable(norm=cNorm, cmap='bwr')
-	for i in range(len(labels)): #this adds all the points
-		y = data[i][1]
+	if values != []:
+		bp = ax.boxplot(values, 0, '', 0,patch_artist=True)
+		vminmax = 0.5
+		cNorm  = colors.Normalize(vmin=-vminmax, vmax=vminmax)
+		scalarMap = cmx.ScalarMappable(norm=cNorm, cmap='bwr')
+		for i in range(len(labels)): #this adds all the points
+			y = data[i][1]
+			colChange = colChanges[data[i][0]]
+			changes = data[i][1]
+			x = np.random.normal(1+i, 0.04, size=len(y))
+			for X,Y,c in zip(x,changes,colChange):
+				#c = '#e7298a'
+				plt.plot(Y,X,'r.',marker='o', color=scalarMap.to_rgba(float(c)))#, alpha=0.5)
 
-		colChange = colChanges[data[i][0]]
-		changes = data[i][1]
-		x = np.random.normal(1+i, 0.04, size=len(y))
-		for X,Y,c in zip(x,changes,colChange):
-			#c = '#e7298a'
-			plt.plot(Y,X,'r.',marker='o', color=scalarMap.to_rgba(float(c)))#, alpha=0.5)
+		## change outline color, fill color and linewidth of the boxes
+		for box in bp['boxes']:
+	    	# change outline color
+			box.set( color='#7570b3', linewidth=2)
+	    		# change fill color
+			box.set( facecolor = '#1b9e77' )
 
-	## change outline color, fill color and linewidth of the boxes
-	for box in bp['boxes']:
-	    # change outline color
-	    box.set( color='#7570b3', linewidth=2)
-	    # change fill color
-	    box.set( facecolor = '#1b9e77' )
+		## change color and linewidth of the whiskers
+		for whisker in bp['whiskers']:
+			whisker.set(color='#7570b3', linewidth=2)
 
-	## change color and linewidth of the whiskers
-	for whisker in bp['whiskers']:
-	    whisker.set(color='#7570b3', linewidth=2)
+		## change color and linewidth of the caps
+		for cap in bp['caps']:
+			cap.set(color='#7570b3', linewidth=2)
 
-	## change color and linewidth of the caps
-	for cap in bp['caps']:
-	    cap.set(color='#7570b3', linewidth=2)
+		## change color and linewidth of the medians
+		for median in bp['medians']:
+			median.set(color='#b2df8a', linewidth=2)
 
-	## change color and linewidth of the medians
-	for median in bp['medians']:
-	    median.set(color='#b2df8a', linewidth=2)
+		## change the style of fliers and their fill
+		for flier in bp['fliers']:
+			flier.set(marker='o', color='#e7298a', alpha=0.5)
 
-	## change the style of fliers and their fill
-	for flier in bp['fliers']:
-	    flier.set(marker='o', color='#e7298a', alpha=0.5)
-
-	ax.set_xlabel('logFold2')
-	ax.grid(True)
-	LABELS = []
-	for a,b in zip(labels, values):
-		LABELS.append(a+' ('+str(len(b))+')')
-	plt.yticks(range(1,1+len(LABELS)),
-			  LABELS)
-	fig.savefig(fnameOut+'_motifs.pdf')
-	print fnameOut+'_motifs.pdf'
-
-
+		ax.set_xlabel('logFold2')
+		ax.grid(True)
+		LABELS = []
+		for a,b in zip(labels, values):
+			LABELS.append(a+' ('+str(len(b))+')')
+		plt.yticks(range(1,1+len(LABELS)),
+			  	LABELS)
+		fig.savefig(fnameOut+'_motifs.pdf')
+		print fnameOut+'_motifs.pdf'
+	
+	
 	##############################################################################################
 	#makes plot###################################################################################
 	##############################################################################################
 	#joins all the motifs together
 
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[IDi]],
+	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut).read().split('\n')[1:])
 	data = {}
 	colChanges = {}
@@ -165,75 +166,101 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	labels = map(lambda x: x[0],data)
 	fig = plt.figure(figsize = (10,0.5*len(data)))
 	ax = fig.add_subplot(111)
-	bp = ax.boxplot(values, 0, '', 0,patch_artist=True)
-	for i in range(len(labels)): #this adds all the points
-		y = data[i][1]
+	if values != []:
+		bp = ax.boxplot(values, 0, '', 0,patch_artist=True)
+		for i in range(len(labels)): #this adds all the points
+			y = data[i][1]
+			colChange = colChanges[data[i][0]]
+			changes = data[i][1]
+			x = np.random.normal(1+i, 0.04, size=len(y))
+			for X,Y,c in zip(x,changes,colChange):
+				#c = '#e7298a'
+				plt.plot(Y,X,'r.',marker='o', color=scalarMap.to_rgba(float(c)))#, alpha=0.5)
 
-		colChange = colChanges[data[i][0]]
-		changes = data[i][1]
-		x = np.random.normal(1+i, 0.04, size=len(y))
-		for X,Y,c in zip(x,changes,colChange):
-			#c = '#e7298a'
-			plt.plot(Y,X,'r.',marker='o', color=scalarMap.to_rgba(float(c)))#, alpha=0.5)
+		## change outline color, fill color and linewidth of the boxes
+		for box in bp['boxes']:
+	    	# change outline color
+			box.set( color='#7570b3', linewidth=2)
+			# change fill color
+			box.set( facecolor = '#1b9e77' )
+
+		## change color and linewidth of the whiskers
+		for whisker in bp['whiskers']:
+			whisker.set(color='#7570b3', linewidth=2)
+
+		## change color and linewidth of the caps
+		for cap in bp['caps']:
+			cap.set(color='#7570b3', linewidth=2)
+
+		## change color and linewidth of the medians
+		for median in bp['medians']:
+			median.set(color='#b2df8a', linewidth=2)
+
+		## change the style of fliers and their fill
+		for flier in bp['fliers']:
+			flier.set(marker='o', color='#e7298a', alpha=0.5)
+
+		ax.set_xlabel('logFold2')
+		ax.grid(True)
+		LABELS = []
+		for a,b in zip(labels, values):
+			LABELS.append(a+' ('+str(len(b))+')')
+		plt.yticks(range(1,1+len(LABELS)),
+			  	LABELS)
+
+		gradient = np.linspace(0, 1, 256)
+		gradientlabels = map(lambda x: x/float(max(gradient))*vminmax*2-vminmax,gradient)
+		gradient = np.vstack((gradientlabels, gradientlabels)).transpose()
+
+		#legend = inset_axes(ax,
+    	#                width=0.5, # width = 30% of parent_bbox
+    	#                height="30%", # height : 1 inch
+    	#                loc=4)
+		#legend.imshow(gradient, aspect='auto', cmap='bwr')
+		'''
+		legend = mpl.colorbar.ColorbarBase(ax, cmap='bwr',
+                                	# to use 'extend', you must
+                                	# specify two extra boundaries:
+                                	#boundaries=[0] + bounds + [13],
+                                	#extend='both',
+                                	#ticks=bounds,  # optional
+                                	spacing='proportional',
+                                	orientation='horizontal')
+    	'''
+		#legend.get_yaxis().set_visible(False)
+		#legend.get_xaxis().set_visible(False)
+		#legend.set_xlabel(' '.join([-vminmax,0,1.5vminmax]))
+		#legend.set_yticklabels()
+		#legend.set_yaxis([-vminmax,0,vminmax])
+		fig.savefig(fnameOut+'_exons.pdf')
 
 
-	## change outline color, fill color and linewidth of the boxes
-	for box in bp['boxes']:
-	    # change outline color
-	    box.set( color='#7570b3', linewidth=2)
-	    # change fill color
-	    box.set( facecolor = '#1b9e77' )
+	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
+			open(fnameOut).read().split('\n')[1:])
+	motifs = sorted(list(set([x[ 0] for x in f])))
+	exons  = sorted(list(set([x[-1] for x in f])))
+	table = [['']+list(motifs)]
+	for exon in exons:
+		table+=[[exon]]
+		for motif in motifs:
+			X = (filter(lambda x: exon in x and motif in x,f))
+			if len(X)==0:	table[-1].append('0')
+			else:		table[-1].append(str(X[0][1]))
+	table = '\n'.join(map(lambda x: sep.join(x),table))
+	f=open(fnameOut+'_motifGene.csv','w')
+	f.write(table)
+	f.close()
 
-	## change color and linewidth of the whiskers
-	for whisker in bp['whiskers']:
-	    whisker.set(color='#7570b3', linewidth=2)
-
-	## change color and linewidth of the caps
-	for cap in bp['caps']:
-	    cap.set(color='#7570b3', linewidth=2)
-
-	## change color and linewidth of the medians
-	for median in bp['medians']:
-	    median.set(color='#b2df8a', linewidth=2)
-
-	## change the style of fliers and their fill
-	for flier in bp['fliers']:
-	    flier.set(marker='o', color='#e7298a', alpha=0.5)
-
-	ax.set_xlabel('logFold2')
-	ax.grid(True)
-	LABELS = []
-	for a,b in zip(labels, values):
-		LABELS.append(a+' ('+str(len(b))+')')
-	plt.yticks(range(1,1+len(LABELS)),
-			  LABELS)
-
-	gradient = np.linspace(0, 1, 256)
-	gradientlabels = map(lambda x: x/float(max(gradient))*vminmax*2-vminmax,gradient)
-	gradient = np.vstack((gradientlabels, gradientlabels)).transpose()
-
-	#legend = inset_axes(ax,
-    #                width=0.5, # width = 30% of parent_bbox
-    #                height="30%", # height : 1 inch
-    #                loc=4)
-	#legend.imshow(gradient, aspect='auto', cmap='bwr')
-	'''
-	legend = mpl.colorbar.ColorbarBase(ax, cmap='bwr',
-                                # to use 'extend', you must
-                                # specify two extra boundaries:
-                                #boundaries=[0] + bounds + [13],
-                                #extend='both',
-                                #ticks=bounds,  # optional
-                                spacing='proportional',
-                                orientation='horizontal')
-    '''
-	#legend.get_yaxis().set_visible(False)
-	#legend.get_xaxis().set_visible(False)
-	#legend.set_xlabel(' '.join([-vminmax,0,1.5vminmax]))
-	#legend.set_yticklabels()
-	#legend.set_yaxis([-vminmax,0,vminmax])
-	fig.savefig(fnameOut+'_exons.pdf')
-
+	#try:
+	import pandas
+	import seaborn as sns
+	data = pandas.DataFrame.from_csv(fnameOut+'_motifGene.csv',sep=sep)
+	print len(data.index)
+	f, ax = plt.subplots()#figsize=(9, 6))
+	sns.heatmap(data, linewidths=0, ax=ax)
+	f.savefig(fnameOut+"_motifGene.pdf")
+	#except:
+	#	print ""
 
 if __name__ == '__main__':
 	summaryDex('smallDexseq.csv.withMotifs.csv')
