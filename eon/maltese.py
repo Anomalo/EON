@@ -243,10 +243,8 @@ class maltese:
 		fasta = []
 		ids = []
 		for row in csvfile:
-			print n
 			if n==0:
 				header = row
-
 				n+=1
 				continue
 			#rowD = dict(zip(header,row))	
@@ -316,7 +314,7 @@ def sliceSeq(seq,max_length=40000,linelength=80):
 def translateSeq(seq,frame):
 
 	seq = seq[frame:]
-	#seq = seq[:3*len(seq)/3]
-	if len(seq)<1000:	print seq
-	print ''
+#	#seq = seq[:3*len(seq)/3]
+#	if len(seq)<1000:	print seq
+#	print ''
 	return translate(seq)
