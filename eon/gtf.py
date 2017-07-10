@@ -2,6 +2,7 @@ from glob import glob
 import urllib
 import cPickle as pickle
 import os
+import os.path
 
 def getGTF(taxon='Mus musculus',release=77, dir='annotations/'):
 	taxon = taxon.lower().replace(' ','_')
@@ -56,6 +57,16 @@ class gtf:
 			if len(f) != 1:
 				raise ValueError('there is either no gtf file in annotations or there is more than one')
 			f = f[0]
+		if os.path.isfile(f+'.p'):
+			P = pickle.load( open( f+".p", "rb" ) )
+			self.bigGTFlistdict = P['bigGTFlistdict']
+			self.chrDict 	= P['chrDict']
+			self.bigGTFdict	= P['bigGTFdict']
+			self.names_transcripts = P['names_transcripts']
+			self.gene_IDS	= P['gene_IDS']
+			return None
+		gtfFile = f
+
 		f = open(f,'r')
 		self.header = ['seqname',
 					   'source',
@@ -76,6 +87,9 @@ class gtf:
 				if 'exon' == line.split('\t')[2]:
 					bigGTFlistdict.append(self._splitLine(line, self.header))
 		self.bigGTFlistdict = bigGTFlistdict
+
+
+
 		chrDict = {}
 		for line in bigGTFlistdict:
 			chromosome = line['seqname']
@@ -87,7 +101,7 @@ class gtf:
 		self.names_transcripts = {}
 		self.gene_IDS={}
 		for line in self.bigGTFlistdict:
-			if not 'transcript_name' in line: continue		
+			if not 'transcript_name' in line: continue
 			if not line['transcript_name'] in self.bigGTFdict:
 				exon_number = line['exon_number']
 				exon_number = '0'*(3-len(exon_number))+exon_number
@@ -101,7 +115,13 @@ class gtf:
 			if not ID in self.gene_IDS:
 				self.gene_IDS[ID]=[]
 			self.gene_IDS[ID].append(transcript_name)
-
+		P = {}
+		P['bigGTFlistdict']	= self.bigGTFlistdict
+		P['chrDict']	= self.chrDict
+		P['bigGTFdict']	= self.bigGTFdict
+		P['names_transcripts']	= self.names_transcripts
+		P['gene_IDS']	= self.gene_IDS
+		pickle.dump( P, open( gtfFile+".p", "wb" ) )
 		#orders and cleans self.names_transcripts
 		#for i in self.names_transcripts:
 		#	self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
@@ -141,7 +161,6 @@ class gtf:
 		given a gene name it returns a list of transcript names (exon specific)
 		'''
 		if gene.upper() in self.names_transcripts:
-			
 			 return (self.names_transcripts[gene.upper()])
 		else: return []
 
