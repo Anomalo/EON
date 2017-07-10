@@ -255,7 +255,6 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	import pandas
 	import seaborn as sns
 	data = pandas.DataFrame.from_csv(fnameOut+'_motifGene.csv',sep=sep)
-	print len(data.index)
 	f, ax = plt.subplots()#figsize=(9, 6))
 	sns.heatmap(data, linewidths=0, ax=ax)
 	f.savefig(fnameOut+"_motifGene.pdf")
