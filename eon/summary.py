@@ -262,8 +262,8 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 					0.2	* len(data.index)
 					))
 		plt.setp(f.ax_heatmap.get_yticklabels(), rotation=0)
-		f.savefig(fnameOut+"_motifGene"+plotFormat)
-		print fnameOut+"_motifGene"+plotFormat
+		f.savefig(fnameOut+"_motifExon"+plotFormat)
+		print fnameOut+"_motifExon"+plotFormat
 	except:
 		print "pandas or seaborn python modules not available"
 		print "these modules are needed for clustermap plotting only"
