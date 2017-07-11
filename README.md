@@ -97,3 +97,37 @@ Module | version tested
 pandas|0.19.2
 seaborn|0.7.0
 
+## Installation
+The program does not need to be compiled and can run in an UNIX environment.
+In order to install simply download repository
+```
+git clone https://github.com/aLahat/maltese.git
+
+```
+or
+```
+wget https://github.com/aLahat/maltese/archive/dexMotif.zip && unzip dexMotif.zip
+```
+The program can be run staight from its folder just by calling it 
+```
+python2.7 [path to maltesers folder]/bin/maltese [options]
+```
+In order to install maltesers
+```
+chmod +x [path to maltesers folder]/bin/maltese
+```
+and then add the bin folder to your path, for example:
+```
+echo export \${PATH}=[path to maltesers folder]/bin]:\${PATH} >> ~/.bashrc
+```
+## Testing
+To test maltesers, genomes file for human chromosome 19, rMATS output (only chromosome 19), and the expected result of a correct maltesers run are bundled in the test folder.
+To test maltesers just run the maltesers_test.sh script.
+```
+bash maltesers_test.sh
+```
+The test will run maltesers and then compered if the result is correct.
+
+## Contact
+
+Any issues feel free to contact the developer at albert@lahat.io
