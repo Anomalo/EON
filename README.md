@@ -129,4 +129,4 @@ The test will run maltesers and then compered if the result is correct.
 
 ## Contact
 
-Any issues contact the dev at albert@lahat.io
+Any issues feel free to contact the developer at albert@lahat.io
