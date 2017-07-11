@@ -60,17 +60,23 @@ Options:
 ## Output
 
 maltesers outputs a few files (with the prefix stipulated in the -o OUTPUT or --output=OUTPU option):
-* OUTPUT: The original differential splicing file with six new columns prepended:
- * motif: Motif name.
- * logFold2: The	log2 difference in motif density between the exon and the rest of the gene.
- * ExonCount: The number of amino acids taken by the specific motif in the exon.
- * exonLen: The size of the exon.
- * motifGeneCount: The number of amino acids taken by the specific motif in the gene (minus exon).
- * geneLen: The size of the gene (minus exon).
-* OUTPUT_exons.pdf: a boxplot of hits (per logfold2 score) per exon, colored by the change if available.
-* OUTPUT_motifs.pdf: a boxplot of hits (per logfold2 score) per exon, colored by the change if available.
-* OUTPUT_motifsExon.pdf: clustered heatmap of motifs scores per exon.
+- OUTPUT: The original differential splicing file with six new columns prepended:
+  - motif: Motif name.
+  - logFold2: The	log2 difference in motif density between the exon and the rest of the gene.
+  - ExonCount: The number of amino acids taken by the specific motif in the exon.
+  - exonLen: The size of the exon.
+  - motifGeneCount: The number of amino acids taken by the specific motif in the gene (minus exon).
+  - geneLen: The size of the gene (minus exon).
+- OUTPUT_exons.pdf: a boxplot of hits (per logfold2 score) per exon, colored by the change if available.
+- OUTPUT_motifs.pdf: a boxplot of hits (per logfold2 score) per exon, colored by the change if available.
+- OUTPUT_motifsExon.pdf: clustered heatmap of motifs scores per exon.
+- OUTPUT_motifsExon.csv: CSV with the values of the OUTPUT_motifsExon.pdf plot.
 
+temporary files (can be deleted):
+- tmp.fasta: a fasta file with the sequences for the exons and the genes for ps_scan.
+- tmp.fasta.prosite: prosite output.
+
+As long as the tmp.fasta.prosite the plots can be redone in a different format by reruning maltesers with the same prameters but using the -S (--SkipProsite) and the desired image format -f (--plotFormat) and the plots will be redone without rerunning ps_scan.
 
 
 ## Prequisites
