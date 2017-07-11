@@ -119,10 +119,14 @@ and then add the bin folder to your path, for example:
 ```
 echo export \${PATH}=[path to maltesers folder]/bin]:\${PATH} >> ~/.bashrc
 ```
-### Testing
+## Testing
 To test maltesers, genomes file for human chromosome 19, rMATS output (only chromosome 19), and the expected result of a correct maltesers run are bundled in the test folder.
 To test maltesers just run the maltesers_test.sh script.
 ```
 bash maltesers_test.sh
 ```
 The test will run maltesers and then compered if the result is correct.
+
+## Contact
+
+Any issues contact the dev at albert@lahat.io
