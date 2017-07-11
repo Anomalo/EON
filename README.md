@@ -118,7 +118,7 @@ chmod +x [path to maltesers folder]/bin/maltese
 ```
 and then add the bin folder to your path, for example:
 ```
-echo export \${PATH}=[path to maltesers folder]/bin]:\${PATH} >> ~/.bashrc
+echo export PATH=[path to maltesers folder]/bin]:\${PATH} >> ~/.bashrc
 ```
 ## Testing
 To test maltesers, genomes file for human chromosome 19, rMATS output (only chromosome 19), and the expected result of a correct maltesers run are bundled in the test folder.
