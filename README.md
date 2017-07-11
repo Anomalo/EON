@@ -58,6 +58,36 @@ Options:
     -p, --purge         delete all anotation files
     -m, --Tempfiles     does not erase temprary files
 ```
+The -F format option might be annoying to set up, so if it is ignored, then the output will quickly tell you which indices you have:
+
+```
+option -F (--format) should be a comma separated indices of the column number of 'entrezID,geneName,chromosome,start,end,strand,pvalue,change'
+this are the header indices for your file:
+0 	ID ( 2088 )
+1 	GeneID ( ENSG00000142541 )
+2 	geneSymbol ( RPL13A )
+3 	chr ( 19 )
+4 	strand ( + )
+5 	riExonStart_0base ( 49489849 )
+6 	riExonEnd ( 49490297 )
+7 	upstreamES ( 49489849 )
+8 	upstreamEE ( 49490090 )
+9 	downstreamES ( 49490231 )
+10 	downstreamEE ( 49490297 )
+11 	ID.1 ( 2088 )
+12 	IJC_SAMPLE_1 ( 3,4,6 )
+13 	SJC_SAMPLE_1 ( 0,0,0 )
+14 	IJC_SAMPLE_2 ( 2,3,7 )
+15 	SJC_SAMPLE_2 ( 1,5,3 )
+16 	IncFormLen ( 188 )
+17 	SkipFormLen ( 94 )
+18 	PValue ( 7.14623804576e-10 )
+19 	FDR ( 2.22962627028e-06 )
+20 	IncLevel1 ( 1.0,1.0,1.0 )
+21 	IncLevel2 ( 0.5,0.231,0.538 )
+22 	IncLevelDifference ( 0.577 )
+
+```
 ## Output
 
 maltesers outputs a few files (with the prefix stipulated in the -o OUTPUT or --output=OUTPU option):
