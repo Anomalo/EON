@@ -8,3 +8,6 @@
 			-o test/MALTESERS \
 			test/MATS_output/RI.chr19.txt
 
+cmp test/MALTESERS_expected.csv test/MALTESERS.csv  >/dev/null  && \
+	echo The test was successful, maltesers seems to be working || \
+	echo Something went wrong, maltesers does not seem to be working 
