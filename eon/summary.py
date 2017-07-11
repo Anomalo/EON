@@ -22,7 +22,6 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	'''
 	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
 	'''
-
 	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
 	if GENENAME ==-1: GENENAME=IDi
 	f = open(fname).read().split('\n')
@@ -54,7 +53,6 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 			#pValue = bionmial_test(float(logFold2),changes)
 			newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
 			newLines.append(newLine)
-	print fnameOut+'.csv'
 	open(fnameOut+'.csv','w').write('\n'.join(newLines))
 	##############################################################################################
 	#makes plot###################################################################################
@@ -63,7 +61,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	#pprint(	map(lambda x: (x.split(sep),len(x.split(sep))),
 	#		open(fnameOut).read().split('\n')[1:]))
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
-			open(fnameOut).read().split('\n')[1:])
+			open(fnameOut+'.csv').read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
@@ -142,7 +140,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	#joins all the motifs together
 
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
-			open(fnameOut).read().split('\n')[1:])
+			open(fnameOut+'.csv').read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
@@ -237,7 +235,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 
 
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
-			open(fnameOut).read().split('\n')[1:])
+			open(fnameOut+'.csv').read().split('\n')[1:])
 	motifs = sorted(list(set([x[ 0] for x in f])))
 	exons  = sorted(list(set([x[-1] for x in f])))
 	table = [['']+list(motifs)]
@@ -253,16 +251,21 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 	f.write(table)
 	f.close()
 
-	#try:
-	import pandas
-	import seaborn as sns
-	data = pandas.DataFrame.from_csv(fnameOut+'_motifGene.csv',sep=sep)
-	f, ax = plt.subplots()#figsize=(9, 6))
-	sns.heatmap(data, linewidths=0, ax=ax)
-	f.savefig(fnameOut+"_motifGene.pdf")
-	print fnameOut+"_motifGene.pdf"
-	#except:
-	#	print ""
+	try:
+		import pandas
+		import seaborn as sns
+		data = pandas.DataFrame.from_csv(fnameOut+'_motifGene.csv',sep=sep).applymap(lambda x: float(str(x).replace('N','')))
+		f = sns.clustermap(data,
+				figsize=(
+					0.3	* len(data.columns),
+					0.2	* len(data.index)
+					))
+		plt.setp(f.ax_heatmap.get_yticklabels(), rotation=0)
+		f.savefig(fnameOut+"_motifGene.pdf")
+		print fnameOut+"_motifGene.pdf"
+	except:
+		print "pandas or seaborn python modules not available"
+		print "these modules are needed for clustermap plotting only"
 
 if __name__ == '__main__':
 	summaryDex('smallDexseq.csv.withMotifs.csv')
