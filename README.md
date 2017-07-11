@@ -107,7 +107,7 @@ temporary files (can be deleted):
 - tmp.fasta: a fasta file with the sequences for the exons and the genes for ps_scan.
 - tmp.fasta.prosite: prosite output.
 
-As long as the tmp.fasta.prosite the plots can be redone in a different format by reruning maltesers with the same prameters but using the -S (--SkipProsite) and the desired image format -f (--plotFormat) and the plots will be redone without rerunning ps_scan.
+As long as the tmp.fasta.prosite is kept, the plots can be redone in a different format by reruning maltesers with the same prameters but using the -S (--SkipProsite) and the desired image format -f (--plotFormat), the plots will then be redone without rerunning ps_scan.
 
 
 ## Prequisites
