@@ -52,9 +52,25 @@ def main():
 		#./bin/maltese -vm -s '\t' -F '1,3,5,6,4' -P 5 MATS_5.txt
 	parser = OptionParser(description=description,usage = usage)
 
-	group = OptionGroup(parser, "Required Parameters",
+	group = OptionGroup(parser, "Required parameters",
                     "Parameters required to run maltesers"
 			)
+	group.add_option('-T','--taxon',
+				action='store', type='string',
+				dest='annotations',default='Mus_musculus',
+				help='Organisms of study (Mus_musculus, Homo_sapiens...) if no genome files presents,'
+					'it will try to downloads and generate anotation files of defined taxon')
+
+	group.add_option('-t','--taxon_version',
+				action='store', type='string',
+				dest='annotation_version',default='GRCm38',
+				help='defines what genome version to download, default is "GRCm38"')
+
+	group.add_option('-a','--annotations',
+				action='store', type='string',
+				dest='annotationsDir',default='annotations',
+				help='directory with annotations: the gtf file')
+
 	group.add_option('-s','--sep',
 				action='store', type='string',
 				dest='sep',default=',',
@@ -65,21 +81,6 @@ def main():
 				action='store', type='string',
 				dest='output',default='',
 				help='output file, Default will output results in current directory')
-
-	group.add_option('-a','--annotations',
-				action='store', type='string',
-				dest='annotationsDir',default='annotations',
-				help='directory with annotations: the gtf file')
-
-	group.add_option('-T','--taxon',
-				action='store', type='string',
-				dest='annotations',default='Mus_musculus',
-				help='downloads and generates anotation files of defined taxon -A "Mus_musculus"')
-
-	group.add_option('-t','--taxon_version',
-				action='store', type='string',
-				dest='annotation_version',default='GRCm38',
-				help='defines what genome version to download, default is "GRCm38"')
 
 	group.add_option('-F','--format',
 				action='store', type='string',
@@ -92,10 +93,19 @@ def main():
 					)
 	parser.add_option_group(group)
 
-	parser.add_option('-v','--verbose',
+	group = OptionGroup(parser, "Optional parameters")
+
+	group.add_option('-f','--plotFormat',
+				action="store",type="string",
+				dest='plotFormat',default="pdf",
+				help="Which format to save the plots, default is pdf")
+
+	group.add_option('-v','--verbose',
 				action='store_true',
 				dest ='v', default=False,
 				help='shows you what am I thinking')
+
+	parser.add_option_group(group)
 
 	parser.add_option('-V','--version',
 				action='store_true',
@@ -141,6 +151,7 @@ def main():
 	inputFormat = options.inputFormat
 	sep = options.sep
 	processes = options.processes
+	plotFormat = options.plotFormat
 	if sep == '\\t':sep = '\t'
 
 	if options.version:
@@ -269,7 +280,7 @@ def main():
 						sep=sep,
 						inputFormat=inputFormat)
 		dexMotif.addMotifs(skipProsite=skipProsite)
-		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat)
+		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat,plotFormat=plotFormat)
 
 
 

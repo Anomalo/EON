@@ -18,13 +18,14 @@ def bionmial_test(sample,background):
 	p_values = st.norm.sf(abs(z_score))
 	return p_values
 
-def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
+def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat='pdf'):
 	'''
 	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
 	'''
 	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
 	if GENENAME ==-1: GENENAME=IDi
 	f = open(fname).read().split('\n')
+	plotFormat = '.'+plotFormat.replace('.','')
 	CHANGE-=1
 	header = f.pop(0)
 	header = header.replace('prosite_motifs',
@@ -130,8 +131,8 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 			LABELS.append(a+' ('+str(len(b))+')')
 		plt.yticks(range(1,1+len(LABELS)),
 			  	LABELS)
-		fig.savefig(fnameOut+'_motifs.pdf')
-		print fnameOut+'_motifs.pdf'
+		fig.savefig(fnameOut+'_motifs'+plotFormat)
+		print fnameOut+'_motifs'+plotFormat
 	
 	
 	##############################################################################################
@@ -230,8 +231,8 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 		#legend.set_xlabel(' '.join([-vminmax,0,1.5vminmax]))
 		#legend.set_yticklabels()
 		#legend.set_yaxis([-vminmax,0,vminmax])
-		fig.savefig(fnameOut+'_exons.pdf')
-		print fnameOut+'_exons.pdf'
+		fig.savefig(fnameOut+'_exons'+plotFormat)
+		print fnameOut+'_exons'+plotFormat
 
 
 	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
@@ -261,8 +262,8 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-"):
 					0.2	* len(data.index)
 					))
 		plt.setp(f.ax_heatmap.get_yticklabels(), rotation=0)
-		f.savefig(fnameOut+"_motifGene.pdf")
-		print fnameOut+"_motifGene.pdf"
+		f.savefig(fnameOut+"_motifGene"+plotFormat)
+		print fnameOut+"_motifGene"+plotFormat
 	except:
 		print "pandas or seaborn python modules not available"
 		print "these modules are needed for clustermap plotting only"
