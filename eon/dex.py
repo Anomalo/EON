@@ -178,6 +178,8 @@ class dex:
 					err('%(done).2f%%\tretrving sequence for %(id)s %(mode)s'%locals())
 				if mode == 'foreground':
 					seq = fa.seq_coords(seqname,start,end,strand)
+					print seq
+					sys.exit()
 				elif mode == 'background':
 					seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
 										avoid_start=start,

@@ -66,14 +66,15 @@ class maltese:
 		verbose = self.verbose
 		sep = self.sep
 		ps_scan = self.ps_scan
-		if skipProsite==False:
+		if not skipProsite:
 			tempFasta ,ids= self.dexSeqToFasta()
 			if verbose: 
 				err(tempFasta)
 				f = open('%(tempFasta)s'%locals()).read().split('>')
 				f = set(map(lambda x: ':'.join(x.split(':')[:3]),f))
 				fastaCount= len(f)
-
+			if self.verbose:
+				err('running ps_scan')
 			prositeCMD = 'perl %(ps_scan)sps_scan.pl --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite'
 			os.system(prositeCMD % locals())
 			'''
@@ -83,13 +84,11 @@ class maltese:
 			if verbose:
 				print (prositeCMD % locals())
 				print 'starting prosite, PID',PID
-
 				print ''
 			time.sleep(5)
 
 			while PID in processes(): #while prosite is running
-
-				if verbose: 
+				if verbose:
 					f = open('%(tempFasta)s.prosite'%locals()).read().split('>')
 					F = set(map(lambda x: ':'.join(x.split(':')[:3]),f))
 					prositeCount= len(F)
@@ -171,8 +170,7 @@ class maltese:
 		'''
 		reads a dexseq file and its prosite output and saves the results in dexseqOut
 		'''
-		if self.verbose:
-			err('running ps_scan')
+		if self.verbose: err('reading ps_scan output')
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep

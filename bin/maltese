@@ -260,14 +260,14 @@ def main():
 	else:
 		from eon import maltese
 		dexMotif = maltese.maltese(dexseq,v,
-					taxon=annotations, 
-					version=annotation_version , 
-					temp = options.tempfiles,
-					annotationDir = annotationDir,
-					output=output+'.tmp',
-					outputMode = 'w',
-					sep=sep,
-					inputFormat=inputFormat)
+						taxon=annotations, 
+						version=annotation_version , 
+						temp = options.tempfiles,
+						annotationDir = annotationDir,
+						output=output+'.tmp',
+						outputMode = 'w',
+						sep=sep,
+						inputFormat=inputFormat)
 		dexMotif.addMotifs(skipProsite=skipProsite)
 		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat)
 
