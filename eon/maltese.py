@@ -33,9 +33,9 @@ def err(*args):
 
 
 class maltese:
-	def __init__(self,dexseq,gtf='',verbose=False,sep=',',taxon='Mus_musculus'
+	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus'
 		,version='GRCm38',temp=False,annotationDir='annotations',
-		output='',inputFormat="0,8,9,10,12,7",outputMode='w',PvalFilter = 0.01):
+		output='',inputFormat="0,8,9,10,12,7",outputMode='w',PvalFilter = 0.01,gtf=None):
 		self.dexseq=dexseq
 		self.prosite = 'ps_scan/prosite.dat'
 		self.verbose=verbose
