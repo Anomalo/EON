@@ -33,7 +33,7 @@ def err(*args):
 
 
 class maltese:
-	def __init__(self,dexseq,verbose=False,sep=',',taxon='Mus_musculus'
+	def __init__(self,dexseq,gtf='',verbose=False,sep=',',taxon='Mus_musculus'
 		,version='GRCm38',temp=False,annotationDir='annotations',
 		output='',inputFormat="0,8,9,10,12,7",outputMode='w',PvalFilter = 0.01):
 		self.dexseq=dexseq
@@ -53,10 +53,10 @@ class maltese:
 
 		#err(self.ps_scan)
 		#return None
-		gtf_file = glob.glob(annotationDir+'/*.gtf')
-		if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
-		if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
-		self.gtf_file = gtf_file[0]
+		#gtf_file = glob.glob(annotationDir+'/*.gtf')
+		#if gtf_file ==[]:raise Exception('no gtf found in '+annotationDir)
+		#if len(gtf_file) >1: raise Exception('more than one gtf in %(annotationDir)s '%locals())
+		self.gtf_file = gtf #_file[0]
 		fa.set_taxon(taxon,version,annotationDir = annotationDir)
 
 	def addMotifs(self,skipProsite=False):

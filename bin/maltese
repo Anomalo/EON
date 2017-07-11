@@ -71,6 +71,11 @@ def main():
 				dest='annotationsDir',default='annotations',
 				help='directory with annotations: the gtf file')
 
+	group.add_option('-g','--gtf',
+				action='store', type='string',
+				dest='gtf',
+				help='the gtf annotation file')
+
 	group.add_option('-s','--sep',
 				action='store', type='string',
 				dest='sep',default=',',
@@ -152,6 +157,7 @@ def main():
 	sep = options.sep
 	processes = options.processes
 	plotFormat = options.plotFormat
+	gtf = options.gtf
 	if sep == '\\t':sep = '\t'
 
 	if options.version:
@@ -275,6 +281,7 @@ def main():
 						version=annotation_version , 
 						temp = options.tempfiles,
 						annotationDir = annotationDir,
+						gtf = gtf,
 						output=output+'.tmp',
 						outputMode = 'w',
 						sep=sep,

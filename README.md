@@ -32,7 +32,8 @@ Options:
                         defines what genome version to download, default is
                         "GRCm38"
     -a ANNOTATIONSDIR, --annotations=ANNOTATIONSDIR
-                        directory with annotations: the gtf file
+                        directory with annotations
+    -g GTF, --gtf=GTF   the gtf annotation file
     -s SEP, --sep=SEP   what separator is present in the input. Also used for
                         output
     -o OUTPUT, --output=OUTPUT
