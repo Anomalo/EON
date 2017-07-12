@@ -1,12 +1,12 @@
 # Motif ALTernative Exons Scanner Enrichment of RNA-Seq
 
-This tool enriches exons that have been spliced as seen in dexseq DEXSeqResults.
+This tool enriches exons that have been spliced as seen in dexseq or rMATs.
 It first creates a temporary fasta file with the sequences of the exons spliced, and the rest of the gene sans the spliced exon (background).
 It then annotates the sequences extracted with prosite. Finally it calculates the score of each motif by:
 
 score = (motifs in exon / size of exon)/(motifs in background / size of background)
 
-If there is no motifs in the background then the score just gives the count of motifs flagged with an 'N' (number).
+If there are no motifs in the background then the score just gives motif density in the exon flagged with an 'N' (number).
 
 ## Manual
 ```
