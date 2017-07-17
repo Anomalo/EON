@@ -10,7 +10,6 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 rcParams.update({'figure.autolayout': True})
 from pprint import pprint
 
-
 def bionmial_test(sample,background):
 	mean = np.mean(background)
 	std = np.std(background)
@@ -22,15 +21,18 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 	'''
 	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
 	'''
-	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+6,FORMAT.replace('-','-1').split(','))
+	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+7,FORMAT.replace('-','-1').split(','))
+	CHANGE = CHANGE+1
 	if GENENAME ==-1: GENENAME=IDi
 	f = open(fname).read().split('\n')
 	plotFormat = '.'+plotFormat.replace('.','')
 	CHANGE-=1
 	header = f.pop(0)
+	#print list(enumerate(header.split()))
 	header = header.replace('prosite_motifs',
 							sep.join([	'motif',
 									'logFold2',
+									'Pvalue',
 									'motifExonCount',
 									'exonLen',
 									'motifGeneCount',
@@ -49,10 +51,12 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 				newLines.append(sep.join(['-']*7)+'%(dexseqData)s'%locals())
 				continue
 			if motif=='':continue
-			motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
+			motif,logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
+			Pvalue = st.fisher_exact([[float(motifExonCount), float(motifGeneCount)],
+						[  float(exonLen),	  float(geneLen)]])[1]
 			#print motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen
 			#pValue = bionmial_test(float(logFold2),changes)
-			newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
+			newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(Pvalue)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
 			newLines.append(newLine)
 	open(fnameOut+'.csv','w').write('\n'.join(newLines))
 	##############################################################################################
@@ -61,14 +65,13 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 	#joins all the motifs together
 	#pprint(	map(lambda x: (x.split(sep),len(x.split(sep))),
 	#		open(fnameOut).read().split('\n')[1:]))
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
+	f = map(lambda x: x.split(sep)[:8]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut+'.csv').read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
-	
-	for motif, change, n,n,n,n, n,colChange,exon in f:
+	for motif, change,P, n,n,n,n, n,colChange,exon in f:
 		#print motif, change,colChange,exon
 		if change =='-':continue
 		if 'N' in change:
@@ -133,21 +136,21 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 			  	LABELS)
 		fig.savefig(fnameOut+'_motifs'+plotFormat)
 		print fnameOut+'_motifs'+plotFormat
-	
-	
+
+
 	##############################################################################################
 	#makes plot###################################################################################
 	##############################################################################################
 	#joins all the motifs together
 
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
+	f = map(lambda x: x.split(sep)[:8]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut+'.csv').read().split('\n')[1:])
 	data = {}
 	colChanges = {}
 	#for i in enumerate(map(lambda x: x.split(sep),
 	#		open(fnameOut).read().split('\n'))[0]):print i
 	#print CHANGE
-	for motif, change, n,n,n,n, n,colChange,exon in f:
+	for motif, change,P, n,n,n,n, n,colChange,exon in f:
 		if change =='-':continue
 		if 'N' in change:
 			#print motif,exon, change
@@ -235,9 +238,10 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 		print fnameOut+'_exons'+plotFormat
 
 
-	f = map(lambda x: x.split(sep)[:7]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
+	f = map(lambda x: x.split(sep)[:8]+[x.split(sep)[CHANGE]]+[x.split(sep)[GENENAME]],
 			open(fnameOut+'.csv').read().split('\n')[1:])
 	motifs = sorted(list(set([x[ 0] for x in f])))
+
 	exons  = sorted(list(set([x[-1] for x in f])))
 	table = [['']+list(motifs)]
 	for exon in exons:
