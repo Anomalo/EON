@@ -52,12 +52,15 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 				continue
 			if motif=='':continue
 			motif,logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
-			Pvalue = st.fisher_exact([[float(motifExonCount), float(motifGeneCount)],
-						[  float(exonLen),	  float(geneLen)]])[1]
+			try:
+				Pvalue = st.fisher_exact([[float(motifExonCount), float(motifGeneCount)],
+							[  float(exonLen),	  float(geneLen)]])[1]
 			#print motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen
 			#pValue = bionmial_test(float(logFold2),changes)
-			newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(Pvalue)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
-			newLines.append(newLine)
+				newLine = '%(motif)s%(sep)s%(logFold2)s%(sep)s%(Pvalue)s%(sep)s%(motifExonCount)s%(sep)s%(exonLen)s%(sep)s%(motifGeneCount)s%(sep)s%(geneLen)s%(dexseqData)s'%locals()
+				newLines.append(newLine)
+			except:
+				pass
 	open(fnameOut+'.csv','w').write('\n'.join(newLines))
 	##############################################################################################
 	#makes plot###################################################################################
