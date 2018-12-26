@@ -157,7 +157,8 @@ To test maltesers just run the maltesers_test.sh script.
 bash maltesers_test.sh
 ```
 The test will run maltesers and then compered if the result is correct.
-
+![MAltESERS result example](/MAltESERS_Results.PNG)
+![MAltESERS protocol](/MAltESERS_Protocol.PNG)
 ## Contact
 
 Any issues feel free to contact the developer at albert@lahat.io
