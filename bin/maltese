@@ -9,22 +9,24 @@ import time
 import threading
 import subprocess
 import shlex
+#get current path
 path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 sys.path.insert(0,path)
 from eon import fa, summary
-#from eon import dex #this is imported at a later stage as it takes a long time to load
 def command(CMD):
+	#runs command CMD as a subprocess
 	print CMD
 	return subprocess.Popen(CMD, shell=True,stdout=subprocess.PIPE)
 
 def running_processes():
+	#lists running subprocesses
 	ps =  subprocess.Popen(['ps','aux'], 
 							shell=True,
 							stdout=subprocess.PIPE).stdout.read()
 	return map(lambda x: int(x.split()[0]),ps.split('\n')[1:-1])
 
 def err(*vars):
-
+	#raise error
 	sys.stderr.write(' '.join(map(str,vars))+'\n')
 
 def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
