@@ -15,6 +15,7 @@ from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 
 def translate(seq):
+	# translate DNA to protein coding sequence
 	while len(seq) % 3 != 0:
 		seq = seq[:-1]
 	coding_dna = Seq(seq, generic_dna)
@@ -22,13 +23,17 @@ def translate(seq):
 
 
 def processes():
+	#return subprocesses ID
 	pl = subprocess.Popen('ps aux'.split(), stdout=subprocess.PIPE).communicate()[0]
 	return map(lambda x: int(x.split()[1]),pl.split('\n')[1:-1])
+
 def command(cmd):
+	# runs a command as a subprocess
 	pl = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
 	return pl.pid
 
 def err(*args):
+	# writes args to stderr
 	sys.stderr.write(' '.join(map(str,args))+'\n')
 
 
@@ -67,16 +72,19 @@ class maltese:
 		sep = self.sep
 		ps_scan = self.ps_scan
 		if not skipProsite:
+			# extracts sequences based on the splicing detected in the input file
 			tempFasta ,ids= self.dexSeqToFasta()
 			if verbose: 
 				err(tempFasta)
 				f = open('%(tempFasta)s'%locals()).read().split('>')
 				f = set(map(lambda x: ':'.join(x.split(':')[:3]),f))
 				fastaCount= len(f)
-			if self.verbose:
 				err('running ps_scan')
+			# generates the command to ran prosite ps_scan
 			prositeCMD = 'perl %(ps_scan)sps_scan.pl --pfscan %(ps_scan)spfscan -d %(ps_scan)sprosite.dat %(tempFasta)s > %(tempFasta)s.prosite'
+			# this step can take a long time
 			os.system(prositeCMD % locals())
+			
 			'''
 			PID = command(prositeCMD % locals())
 			self.PID = PID
@@ -101,21 +109,21 @@ class maltese:
 				time.sleep(1)
 			'''
 			if verbose: err('ps_scan done, reading results')
+		# generates an output file which consists of the input file prepended with the prosite enrichment results
 		self.prositeToDexseq()
 
-		#this part just cleans the temp files
-		#if not self.temps: os.system('rm %(tempFasta)s %(tempFasta)s.prosite'%locals())
 		if verbose: err( 'completed')
 	
 	def readPrositeOut(self):
 		'''
 		reads the prosite output and returns it in a dictionary format
-		{exon:"motif:logfold2change:exonMotifCounts:exonLength:backgroundMotifCounts:backgroundLength"}
+		{exon:	"motif:logfold2change:exonMotifCounts:exonLength:backgroundMotifCounts:backgroundLength"}
 		'''
 		dexseq = self.dexseq
 		prositeOutput = '%(dexseq)s.tmp.fasta.prosite'%locals()
 		f = open(prositeOutput)
 		prosite = f.read()
+		#splits fasta into entries/chunks
 		chunks = prosite.split('>')
 		proD={}
 		for chunk in chunks:
@@ -126,7 +134,7 @@ class maltese:
 			virtual =[0]*10**6
 			for line in lines:
 				if line =='':continue
-				if len( line.split())>3:
+				if len( line.split()) >3:
 					start,space,end = line.split()[:3]
 					start = int(start)
 					end = int(end)
@@ -142,8 +150,8 @@ class maltese:
 			if not name in proD: proD[name]={}
 			if not motif in proD[name]:
 				proD[name][motif]={}
-			proD[name][motif][ground]=map(int,(0,length))
-			proD[name][motif][ground][0]+=round(count,2)
+			proD[name][motif][ground]=(0,int(length))
+			proD[name][motif][ground][0]+=round(count,2) # ensures downstream fload division
 		f.close()
 		
 		for exon,motifs in proD.iteritems():
@@ -152,6 +160,7 @@ class maltese:
 				if 'foreground' in counts:
 					f_counts, f_length=counts['foreground']
 					if 'background' in counts:	
+						# calculates score
 						b_counts, b_length=counts['background']
 						points = math.log((float(f_counts)/float(f_length))/(float(b_counts)/float(b_length)),2)
 						#if points <= abs(min_score):continue
@@ -159,8 +168,9 @@ class maltese:
 						out.append('%(motif)s:%(points)s:%(f_counts)s:%(f_length)s:%(b_counts)s:%(b_length)s'%locals())
 
 					else:
-						points = f_counts/ f_length
-						points = 'N%(points)s'%locals()
+						# if no background motifs detected then
+						# 	instead of a score then write the motif density (prepened by an N)
+						points = 'N%(points)s'% f_counts/ f_length
 						out.append('%(motif)s:%(points)s:%(f_counts)s:%(f_length)s:0:-'%locals())
 			out = ' ; '.join(out)
 			proD[exon]=out
@@ -168,14 +178,14 @@ class maltese:
 			
 	def prositeToDexseq(self):
 		'''
-		reads a dexseq file and its prosite output and saves the results in dexseqOut
+		reads the input file and its prosite output and saves the results in dexseqOut
 		'''
-		if self.verbose: err('reading ps_scan output')
 		dexseq = self.dexseq
 		verbose = self.verbose
 		sep = self.sep
 		inputFormat=self.inputFormat
-
+		if verbose: err('reading ps_scan output')
+		
 		IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(int,inputFormat.replace('-','-1').split(','))
 
 		f = open(dexseq)
@@ -183,11 +193,13 @@ class maltese:
 		n=1
 		newCSV= []
 		prosite = '%(dexseq)s.tmp.fasta.prosite'%locals()
+		# uses self.readPrositeOut() to read the prosite output and calculate scores
 		proD = self.readPrositeOut()
 		for row in csvfile:
 			if n==1:
 				header = row
 				n+=1
+				# adds new header
 				newCSV.append(self.sep.join(['prosite_motifs']+header))
 				continue
 			rowD = dict(zip(header,row))
@@ -201,12 +213,16 @@ class maltese:
 				pVal	= row[PVAL]
 
 			except:continue
+			# ignore non significant results
 			if float(pVal)>self.pvalFilter:continue
+			# generates the ID of the row
 			ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s' % locals()
+			# finds the results for said ID
 			if ID in proD:line = [proD[ID]]+line
 			else: line = ['-']+line
 			newCSV.append(self.sep.join(line))
 		f.close()
+		#save results
 		newCSV='\n'.join(newCSV)
 		f = open(self.dexseqOut,self.outputMode)
 		f.write(newCSV)
@@ -215,7 +231,7 @@ class maltese:
 
 	def dexSeqToFasta(self,linelength=80):
 		'''
-		reads a dexseq output and produces a fasta file based on the coordinates of sequences altered
+		reads the input file output and produces a fasta file based on the coordinates of sequences altered
 		returns the filename of the fasta produced and a list of ids
 		'''
 		inputFormat=self.inputFormat
@@ -259,33 +275,42 @@ class maltese:
 			end = int(end.split('.')[0])
 
 			#if float(pVal)>self.pvalFilter:continue
-
+			
 			for ground in ['foreground','background']:
-				for frame in [0]:
-					if verbose:
-						done = 100*((2*n-1)/numlines)
-						err('\033[F%(done).2f%%\tretriving sequence for %(id)s %(ground)s'%locals())
-					if ground == 'foreground':
-						seq = fa.seq_coords(seqname,start,end,strand)
-					if ground == 'background':
-						#print '>>>>>',id,start,end,GTF.getGeneCoords(id,avoid_start=start, avoid_end  =end)
-
-						seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
-											avoid_start=start,
-											avoid_end  =end)))
-					seq = translateSeq(seq,frame)
-					length=len(seq)
-					seqs = sliceSeq(seq)
-					for seq in seqs:
-						ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(ground)s:%(length)s' % locals()
-						newFasta= '>%(ID)s\n%(seq)s' % locals()
-						fasta.append(newFasta)
+				# extracts foreground (the spliced region) sequence and 
+				#	   background (the rest of the gene) sequence
+				if verbose:
+					done = 100*((2*n-1)/numlines)
+					err('\033[F%(done).2f%%\tretriving sequence for %(id)s %(ground)s'%locals())
+				if ground == 'foreground':
+					# if extracting foreground just get seq from the coordinates of the exon
+					seq = fa.seq_coords(seqname,start,end,strand)
+				if ground == 'background':
+					#print '>>>>>',id,start,end,GTF.getGeneCoords(id,avoid_start=start, avoid_end  =end)
+					# if backgound then extract all the regions of the gene minus the 'avoid_start' to 'avoid_end' of the exon
+					seq = ''.join(fa.seqs_coords(GTF.getGeneCoords(id,
+										avoid_start=start,
+										avoid_end  =end)))
+				# convert dna sequences to AA sequence
+				seq = translateSeq(seq)
+				length=len(seq)
+				# turns a seq into a 'block' of text 80 characters wide (a fasta format)
+				seqs = sliceSeq(seq)
+				for seq in seqs:
+					# creates an ID name for the fasta entry
+					ID = '%(seqname)s_%(start)s-%(end)s_%(strand)s:%(ground)s:%(length)s' % locals()
+					# creates the fasta entry
+					newFasta= '>%(ID)s\n%(seq)s' % locals()
+					# adds the fasta entry
+					fasta.append(newFasta)
 
 
 			ids.append(ID)
 		f.close()
+		# turns the fasta from a list to a string
 		fasta = ''.join(fasta)
 		fastaFname = '%(dexseq)s.tmp.fasta'%locals()
+		# saves fasta
 		f = open(fastaFname,'w')
 		f.write(fasta)
 		f.close()
@@ -296,7 +321,7 @@ class maltese:
 		print 'closing ', self.PID
 		os.system('kill '+str(self.PID))
 
-def sliceSeq(seq,max_length=40000,linelength=80):
+def sliceSeq(seq,max_length=4000000,linelength=80):
 	'''
 	returns a list of sequences, each sequence no longer than max_length
 	and with each line no longer than linelength
@@ -309,8 +334,8 @@ def sliceSeq(seq,max_length=40000,linelength=80):
 			choppedSeq+=subseq[j:j+linelength]+'\n'
 		seqs.append(choppedSeq)
 	return seqs
-def translateSeq(seq,frame):
-
+def translateSeq(seq,frame=0):
+	# changes the translation frame
 	seq = seq[frame:]
 #	#seq = seq[:3*len(seq)/3]
 #	if len(seq)<1000:	print seq
