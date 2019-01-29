@@ -55,7 +55,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 			if motif=='':continue
 			motif,logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
 			try:
-				# 
+				# Very likely this is not the best test
 				Pvalue = st.fisher_exact([[float(motifExonCount), float(motifGeneCount)],
 							[  float(exonLen),	  float(geneLen)]])[1]
 			#print motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen
