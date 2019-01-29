@@ -46,6 +46,7 @@ def check_files(taxon='mus musculus',dir = 'annotations/',version='GRCm38'):
 	fa.set_taxon(taxon=taxon,version=version)
 
 def main():
+	# define CLI parameters
 	usage ='maltese [options] diff_splicing_file'
 	description='''
 	Takes as input a dexseq output file and enriches the loci with motifs
@@ -160,6 +161,7 @@ def main():
 	processes = options.processes
 	plotFormat = options.plotFormat
 	gtf = options.gtf
+	
 	if sep == '\\t':sep = '\t'
 
 	if options.version:
@@ -169,13 +171,14 @@ def main():
 	if len(args) == 0:
 		parser.print_help()
 		return None
-
+	
 	dexseq=args[0]
-
+	# no header format given
+	# print an enumarated top line of the input data as a guide
 	if inputFormat==None:
 		print dexseq
 		f = open(dexseq)
-		contents = f.read().split('\n')[:2]
+		contents = f.read().split('\n')[:2] # gets the first two lines of the file
 		f.close()
 		head = zip(*[line.split(sep) for line in contents])
 		print "option -F (--format) should be a comma separated indices of the column number of 'entrezID,geneName,chromosome,start,end,strand,pvalue,change'"
@@ -185,10 +188,12 @@ def main():
 			print a,'\t',b,'(',c,')'
 
 		sys.exit()
-
+	# if no output given, create one based on input
 	if output=='':
 			output = '%(dexseq)s.withMotifs.csv'%locals()
 
+	# remove annotation files and download them again
+	# this can help with trouble shooting
 	if options.purge:
 		commandOptions ='-rf'
 		if v:commandOptions+='v'
@@ -199,20 +204,21 @@ def main():
 		check_files(taxon = annotations,version =annotation_version , dir = annotationDir)
 	'''
 
-
+	# too many input files given, only one can be given
 	if len(args) > 1:
 		print args
 		err('more than one argument given')
-		return None  
-
+		return None 
+	
+	# starting analysis
 	if v: err('Analyzing',dexseq)
 
-
+	# if multiprocesssing is chosen
 	if processes>1:
 		#running multiprocesses, making a directory 
 		#splitting input file
 		lines = open(dexseq).read().splitlines()
-		header = lines.pop(0)
+		header = lines.pop(0) # gets the header
 		if v: print 'dividing input'
 		#creatign tmpDir
 		directory = dexseq+'TMP_'+str(processes)
@@ -236,8 +242,9 @@ def main():
 			f = open(tempInput.format(directory,processes,n),'w')
 			f.write('\n'.join(subFiles[n]))
 			f.close()
-		PIDs = []
+		PIDs = [] # keep track of subprocesses
 		for n in range(processes):
+			# calls maltesers to run on one process for each separated file
 			CMD = ' '.join([
 				__file__,
 				'--Processes 1',
@@ -251,7 +258,7 @@ def main():
 
 		try: #wait for the subprocesses to run
 			while None in map(lambda x:x.poll(),PIDs):
-				#print 'runnning'
+				#print output of each subprocess
 				for i in PIDs: 
 					print i.stdout.read()
 				#print 1
@@ -265,19 +272,21 @@ def main():
 					print 'killing',i
 					i.kill()
 
-		#merging output files and 
-		rows = [open('{}_{}/0_input.txt.withMotifs.csv.tmp'.format(directory,processes)).read().splitlines()[0]]
+		#merging output files 
+		rows = [open('{}_{}/0_input.txt.withMotifs.csv.tmp'.format(directory,processes)).read().splitlines()[0]] #gets the header of one output file
+		# add the rows of the outputs together
 		for n in range(processes):
-			#print 'albert remember to merge '+tempInput.format(directory,n)
 			rows = rows+open('{}_{}/{}_input.txt.withMotifs.csv.tmp'.format(directory,processes,n)).read().splitlines()[1:]
+		# create output report
 		open(output+'.tmp','w').write('\n'.join(rows))
 		print 'summarizing'
 		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat)
-
 		print 'Done', output
 
 	else:
+		# if one process is choosen (or each process of the subprocesses)
 		from eon import maltese
+		# starts the maltese class from the maltese package
 		dexMotif = maltese.maltese(dexseq,v,
 						taxon=annotations, 
 						version=annotation_version , 
@@ -288,11 +297,12 @@ def main():
 						outputMode = 'w',
 						sep=sep,
 						inputFormat=inputFormat)
+		# runs the motif entichment method
 		dexMotif.addMotifs(skipProsite=skipProsite)
+		# generate a report of the ouptut
 		summary.summaryDex(output+'.tmp',output,sep = sep,FORMAT = inputFormat,plotFormat=plotFormat)
 
 
 
 if __name__ == '__main__': 
-	#check_files()
 	main()
