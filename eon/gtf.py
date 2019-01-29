@@ -5,6 +5,8 @@ import os
 import os.path
 
 def getGTF(taxon='Mus musculus',release=77, dir='annotations/'):
+	''' finds the GTF needed from ensembl and downloads it'''
+	
 	taxon = taxon.lower().replace(' ','_')
 	url = 'ftp://ftp.ensembl.org/pub/release-'+str(release)+'/gtf/'+taxon+'/'
 	response = urllib.urlopen(url).read()
@@ -25,6 +27,108 @@ def getGTF(taxon='Mus musculus',release=77, dir='annotations/'):
 		dir]))
 
 class gtf:
+	"""
+	A class used to represent a GTF file optimized to get fast queries
+
+	...
+
+	Attributes
+	----------
+	f : str
+	a GTF file name
+	"""
+
+
+
+	def __init__(self, f = None):
+		'''
+		init object to get fast queries regarding gtf data
+		f = gtf file
+		'''
+
+		if f == None:
+			# if no GTF file given then see if there is only one in the annotation directory and uses it
+			
+			f = glob('annotations/*gtf')
+			if len(f) != 1:
+				raise ValueError('there is either no gtf file in annotations or there is more than one')
+			f = f[0]
+			
+		if os.path.isfile(f+'.p'):
+			# if used GTF file has a pickle version of self then use self instead of rereading it
+			P = pickle.load( open( f+".p", "rb" ) )
+			self.bigGTFlistdict = P['bigGTFlistdict']
+			self.chrDict 	= P['chrDict']
+			self.bigGTFdict	= P['bigGTFdict']
+			self.names_transcripts = P['names_transcripts']
+			self.gene_IDS	= P['gene_IDS']
+			# end __init__ here
+			return None
+		
+		f = open(f,'r')
+		self.header = ['seqname',
+					   'source',
+					   'feature',
+					   'start',
+					   'end',
+					   'score',
+					   'strand',
+					   'frame',
+					   'attribute']
+		# turns the gtf into a list
+		bigGTFlistdict = []
+		n =0
+		while True:
+			line = f.readline()
+			n+=1
+			if line == '': break
+			if line[0]!='#':
+				if 'exon' == line.split('\t')[2]:
+					bigGTFlistdict.append(self._splitLine(line, self.header))
+		self.bigGTFlistdict = bigGTFlistdict
+
+
+		#  separates gtf list into a chromosome indexed dictionary
+		chrDict = {}
+		for line in bigGTFlistdict:
+			chromosome = line['seqname']
+			if not chromosome in chrDict:
+				chrDict.update({chromosome:[]})
+			chrDict[chromosome].append(line)
+		self.chrDict = chrDict
+		# creates the 'bigGTFdict' dictionary which will hold the preread GTF file
+		self.bigGTFdict={}
+		# creates the 'names_transcripts' dictionary which will hold the exons transcripts of each gene
+		self.names_transcripts = {}
+		# creates the 'gene_IDS' dictionary which will hold the genes ID of each gene
+		self.gene_IDS={}
+		for line in self.bigGTFlistdict:
+			if not 'transcript_name' in line: continue
+			if not line['transcript_name'] in self.bigGTFdict:
+				exon_number = line['exon_number']
+				exon_number = '0'*(3-len(exon_number))+exon_number
+				transcript_name = line['transcript_name'].upper()+':'+exon_number
+				self.bigGTFdict.update({transcript_name:line})
+			name  = line['transcript_name'].upper()
+			if not name in self.names_transcripts:
+				self.names_transcripts.update({ name:[]})
+			self.names_transcripts[name].append(transcript_name)
+			ID = line['gene_id']
+			if not ID in self.gene_IDS:
+				self.gene_IDS[ID]=[]
+			self.gene_IDS[ID].append(transcript_name)
+		# saves the dictionaries into a pickle file for faster loading on the next run
+		P = {}
+		P['bigGTFlistdict']	= self.bigGTFlistdict
+		P['chrDict']	= self.chrDict
+		P['bigGTFdict']	= self.bigGTFdict
+		P['names_transcripts']	= self.names_transcripts
+		P['gene_IDS']	= self.gene_IDS
+		pickle.dump( P, open( gtfFile+".p", "wb" ) )
+		#orders and cleans self.names_transcripts
+		#for i in self.names_transcripts:
+		#	self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
+		
 	def _splitLine(self,line,header):
 		'''
 		Given a tab delaminated string, and a header list, it returns a 
@@ -45,87 +149,7 @@ class gtf:
 			line.update({attName: attVal})
 		del line['attribute']
 		return line
-
-	def __init__(self, f = None):
-		'''
-		object to get fast queries regarding gtf data
-		f = gtf file
-		'''
-
-		if f == None:
-			f = glob('annotations/*gtf')
-			if len(f) != 1:
-				raise ValueError('there is either no gtf file in annotations or there is more than one')
-			f = f[0]
-		if os.path.isfile(f+'.p'):
-			P = pickle.load( open( f+".p", "rb" ) )
-			self.bigGTFlistdict = P['bigGTFlistdict']
-			self.chrDict 	= P['chrDict']
-			self.bigGTFdict	= P['bigGTFdict']
-			self.names_transcripts = P['names_transcripts']
-			self.gene_IDS	= P['gene_IDS']
-			return None
-		gtfFile = f
-
-		f = open(f,'r')
-		self.header = ['seqname',
-					   'source',
-					   'feature',
-					   'start',
-					   'end',
-					   'score',
-					   'strand',
-					   'frame',
-					   'attribute']
-		bigGTFlistdict = []
-		n =0
-		while True:
-			line = f.readline()
-			n+=1
-			if line == '': break
-			if line[0]!='#':
-				if 'exon' == line.split('\t')[2]:
-					bigGTFlistdict.append(self._splitLine(line, self.header))
-		self.bigGTFlistdict = bigGTFlistdict
-
-
-
-		chrDict = {}
-		for line in bigGTFlistdict:
-			chromosome = line['seqname']
-			if not chromosome in chrDict:
-				chrDict.update({chromosome:[]})
-			chrDict[chromosome].append(line)
-		self.chrDict = chrDict
-		self.bigGTFdict={}
-		self.names_transcripts = {}
-		self.gene_IDS={}
-		for line in self.bigGTFlistdict:
-			if not 'transcript_name' in line: continue
-			if not line['transcript_name'] in self.bigGTFdict:
-				exon_number = line['exon_number']
-				exon_number = '0'*(3-len(exon_number))+exon_number
-				transcript_name = line['transcript_name'].upper()+':'+exon_number
-				self.bigGTFdict.update({transcript_name:line})
-			name  = line['transcript_name'].upper()
-			if not name in self.names_transcripts:
-				self.names_transcripts.update({ name:[]})
-			self.names_transcripts[name].append(transcript_name)
-			ID = line['gene_id']
-			if not ID in self.gene_IDS:
-				self.gene_IDS[ID]=[]
-			self.gene_IDS[ID].append(transcript_name)
-		P = {}
-		P['bigGTFlistdict']	= self.bigGTFlistdict
-		P['chrDict']	= self.chrDict
-		P['bigGTFdict']	= self.bigGTFdict
-		P['names_transcripts']	= self.names_transcripts
-		P['gene_IDS']	= self.gene_IDS
-		pickle.dump( P, open( gtfFile+".p", "wb" ) )
-		#orders and cleans self.names_transcripts
-		#for i in self.names_transcripts:
-		#	self.names_transcripts[i] =  sorted(set(self.names_transcripts[i]))
-
+	
 	def readCONFIG(self, fname = 'config.txt'):
 		'''
 		return GTF file acording to config file, a string of the .gmt file name from 
@@ -217,9 +241,11 @@ class gtf:
 		else : return []
 
 def purge():
-	'''redoes thr GTF object'''
+	'''redoes the GTF object'''
 	GTF = gtf()
 	pickle.dump(GTF,open('annotations/gtf.p','wb'))   
+
+	
 
 def getGene(chromosome, start, end):
 	'''
@@ -261,6 +287,8 @@ def getGeneList():
 
 if __name__ == '__main__':
 	while True:
+		# if run as main then emulate a REPL
+		# usefull for debugging
 		try:exec(raw_input('>>>'))
 		except Exception as e: print e
 
