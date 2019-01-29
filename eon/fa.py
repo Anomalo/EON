@@ -6,6 +6,7 @@ _taxon="Mus_musculus"
 _version='GRCm38'
 _annotationDir='annotations'
 def set_taxon(taxon="Mus_musculus",version='GRCm38',annotationDir='annotations'):
+	# changes the taxon, version, and directory used
 	global _taxon
 	global _version
 	global _annotationDir
@@ -14,6 +15,7 @@ def set_taxon(taxon="Mus_musculus",version='GRCm38',annotationDir='annotations')
 	_annotationDir = annotationDir
 
 def chr_url(chromosome):
+	# finds the URL of ensemble fasta file needed
 	taxon = _taxon
 	version = _version
 	taxon_lower = taxon.lower()
@@ -21,6 +23,7 @@ def chr_url(chromosome):
 	return url
 
 def get_fa(chromosome, folder="annotations/genome"):
+	# downloads the chromosome fasta 
 	if not os.path.exists(folder):
 		os.makedirs(folder)
 	url = chr_url(chromosome)
@@ -51,7 +54,7 @@ def chr_filename(chromosome):
 
 def seq_coords(chromosome, start=0, end=-1, direction='+'):
 	'''
-	returns the genomic sequence
+	returns the genomic sequence of coordinates
 	'''
 	filename = chr_filename(chromosome)
 	#if filename == '':
