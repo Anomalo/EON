@@ -11,6 +11,8 @@ rcParams.update({'figure.autolayout': True})
 from pprint import pprint
 
 def bionmial_test(sample,background):
+	# runs <scipy.stats._continuous_distns.norm_gen object> test
+	# decrepid command as it now uses fisher_exact
 	mean = np.mean(background)
 	std = np.std(background)
 	z_score = (sample - mean)/std
@@ -19,7 +21,7 @@ def bionmial_test(sample,background):
 
 def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat='pdf'):
 	'''
-	given the maltesers motif of dexseq output, it will generate a boxplots summarizing the motifs changes
+	given the maltesers motif of dexseq output, it will generate a plots summarizing the motifs changes
 	'''
 	IDi,GENENAME,CHR,START,END,STRAND,PVAL,CHANGE = map(lambda x: int(x)+7,FORMAT.replace('-','-1').split(','))
 	CHANGE = CHANGE+1
@@ -53,6 +55,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 			if motif=='':continue
 			motif,logFold2,motifExonCount,exonLen,motifGeneCount,geneLen = motif.split(':')
 			try:
+				# 
 				Pvalue = st.fisher_exact([[float(motifExonCount), float(motifGeneCount)],
 							[  float(exonLen),	  float(geneLen)]])[1]
 			#print motif, logFold2,motifExonCount,exonLen,motifGeneCount,geneLen
@@ -63,7 +66,7 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 				pass
 	open(fnameOut+'.csv','w').write('\n'.join(newLines))
 	##############################################################################################
-	#makes plot###################################################################################
+	#   makes plot   #############################################################################
 	##############################################################################################
 	#joins all the motifs together
 	#pprint(	map(lambda x: (x.split(sep),len(x.split(sep))),
@@ -276,8 +279,9 @@ def summaryDex(fname,fnameOut='test',sep=',',FORMAT="0,8,9,10,12,7,-",plotFormat
 		print "these modules are needed for clustermap plotting only"
 
 if __name__ == '__main__':
-	summaryDex('smallDexseq.csv.withMotifs.csv')
-    # while True:
-    #     try:exec(raw_input('>>>'))
-    #     except Exception as e: print e
+	#summaryDex('smallDexseq.csv.withMotifs.csv')
+	# run a pseudo REPL
+	while True:
+		try:exec(raw_input('>>>'))
+		except Exception as e: print e
 
